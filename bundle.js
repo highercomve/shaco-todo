@@ -4588,12 +4588,12 @@ var TodoList = _shadowComponent2.default.ComponentFactory({
     _shadowComponent2.default.createElement('ul', null, null, {}, function () {
       visibleTodos.map(function (todo, index) {
         var todoPlushandlers = Object.assign({}, todo, {
-          clickHandler: function (e) {
-            console.log(e);this.state.toggleHandler(index);
-          }.bind(_this),
-          removeHandler: function () {
-            this.state.removeHandler(index);
-          }.bind(_this)
+          clickHandler: function clickHandler(e) {
+            _this.state.toggleHandler(index);
+          },
+          removeHandler: function removeHandler() {
+            _this.state.removeHandler(index);
+          }
         });
         _shadowComponent2.default.createElement('todo-item', index, todoPlushandlers);
       });

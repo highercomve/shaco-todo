@@ -40,13 +40,12 @@ const TodoList = Shaco.ComponentFactory({
     Shaco.createElement('ul', null, null, {}, () => {
       visibleTodos.map((todo, index) => {
         let todoPlushandlers = Object.assign({}, todo, {
-          clickHandler: function(e) { console.log(e); this.state.toggleHandler(index) }.bind(this),
-          removeHandler: function () { this.state.removeHandler(index) }.bind(this)
+          clickHandler: (e) =>  { this.state.toggleHandler(index) },
+          removeHandler: () => { this.state.removeHandler(index) }
         })
         Shaco.createElement('todo-item', index, todoPlushandlers)
       })
-    }
-                       )
+    })
   }
 })
 
