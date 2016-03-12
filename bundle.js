@@ -4459,6 +4459,50 @@ var Shaco = {
 exports.default = Shaco;
 
 },{"./create":16,"incremental-dom":13,"webcomponents-lite":14}],19:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _shadowComponent = require('shadow-component');
+
+var _shadowComponent2 = _interopRequireDefault(_shadowComponent);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var FilterBy = _shadowComponent2.default.ComponentFactory({
+  elementName: 'filter-by',
+  template: '\n  <style>\n    :host {\n  display: table-cell;\n  width: 1%;\n  text-decoration: none;\n  background-color: #ecf0f1;\n  text-align: center;\n  pointer: cursor;\n  }\n    ::content a {\n    display: block;\n  padding: 0.8em 0.4em;\n  color: #333;\n  cursor: pointer;\n  }\n    ::content a.active {\n  background-color: #2980b9;\n  color: white;\n  }\n  </style>\n  <content></content>\n  ',
+  view: function view() {
+    _shadowComponent2.default.createElement('a', null, null, {
+      onclick: this.state.filterHandler,
+      class: this.state.visibilityFilter === this.state.type ? 'active' : ''
+    }, '' + this.state.text);
+  }
+});
+
+var FilterMenu = _shadowComponent2.default.ComponentFactory({
+  elementName: 'filter-menu',
+  template: '\n  <style>\n    ::content {\n  display: table;\n  width: 100%;\n  }\n  </style>\n  <content></content>\n  ',
+  view: function view() {
+    var _this = this;
+
+    this.state.filters.map(function (filter, index) {
+      var filterPlusHandler = Object.assign({}, filter, {
+        visibilityFilter: _this.state.visibilityFilter,
+        filterHandler: function filterHandler() {
+          _this.state.filterHandler(filter.type);
+        }
+      });
+      _shadowComponent2.default.createElement('filter-by', null, filterPlusHandler, {});
+    });
+  }
+});
+
+exports.default = FilterMenu;
+
+},{"shadow-component":12}],20:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -4504,7 +4548,7 @@ var filters = exports.filters = [{
   text: "Completed task"
 }];
 
-},{}],20:[function(require,module,exports){
+},{}],21:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -4549,7 +4593,7 @@ var TodoForm = _shadowComponent2.default.ComponentFactory({
 
 exports.default = TodoForm;
 
-},{"shadow-component":12}],21:[function(require,module,exports){
+},{"shadow-component":12}],22:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -4603,7 +4647,7 @@ var TodoList = _shadowComponent2.default.ComponentFactory({
 
 exports.default = TodoList;
 
-},{"../filter_visibility/store":19,"./show.view":22,"shadow-component":12}],22:[function(require,module,exports){
+},{"../filter_visibility/store":20,"./show.view":23,"shadow-component":12}],23:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -4626,7 +4670,7 @@ var defaultTodoState = {
 var Todo = _shadowComponent2.default.ComponentFactory({
   elementName: 'todo-item',
   state: defaultTodoState,
-  template: '\n  <style>\n    ::content li .content,\n      ::content li .todo-remove {\n  float: left;\n  display: block;\n  }\n\n    ::content li .content {\n  width: 92%;\n  }\n\n    ::content li .todo-remove {\n  background: none;\n  color: #e74c3c;\n  border: none;\n  box-shadow: none;\n  font-size: 2.2em;\n  margin-top: -0.3em;\n  line-height: 0.8em;\n  width: 8%;\n  float: right;\n  }\n\n    ::content .ready {\n  color: #999;\n  position: relative;\n  }\n\n    ::content .ready:before {\n  position: absolute;\n  top: 50%;\n  left: %5;\n  width: 90%;\n  display: block;\n  border-bottom: 1px solid #999;\n  content: "";\n  }\n\n    ::content .not-ready {\n  text-decoration: none;\n  }\n\n    ::content li {\n  background-color: #F3F3F3;\n  padding: 1em;\n  border-bottom: 1px solid #CCC;\n  border-top: 1px solid #FFF;\n  position: relative;\n  }\n    ::content li:before,\n      ::content li:after {\n  content: "";\n  display: block;\n  clear: both;\n  }\n  </style>\n  <div class="todo-item">\n  <content></content>\n  </div>\n  ',
+  template: '\n  <style>\n    ::content li .content,\n      ::content li .todo-remove {\n  float: left;\n  display: block;\n  }\n\n    ::content li .content {\n  width: 92%;\n  }\n\n    ::content li .todo-remove {\n  background: none;\n  color: #e74c3c;\n  border: none;\n  box-shadow: none;\n  font-size: 2.2em;\n  margin-top: -0.3em;\n  line-height: 0.8em;\n  width: 8%;\n  float: right;\n  }\n\n    ::content .ready {\n  color: #999;\n  position: relative;\n  }\n\n    ::content .ready:before {\n  position: absolute;\n  top: 48%;\n  left: %5;\n  width: 80%;\n  display: block;\n  border-bottom: 1px solid #999;\n  content: "";\n  }\n\n    ::content .not-ready {\n  text-decoration: none;\n  }\n\n    ::content li {\n  background-color: #F3F3F3;\n  padding: 1em;\n  border-bottom: 1px solid #CCC;\n  border-top: 1px solid #FFF;\n  position: relative;\n  }\n    ::content li:before,\n      ::content li:after {\n  content: "";\n  display: block;\n  clear: both;\n  }\n  </style>\n  <div class="todo-item">\n  <content></content>\n  </div>\n  ',
   view: function view() {
     var _state = this.state;
     var text = _state.text;
@@ -4651,7 +4695,7 @@ var Todo = _shadowComponent2.default.ComponentFactory({
 
 exports.default = Todo;
 
-},{"shadow-component":12}],23:[function(require,module,exports){
+},{"shadow-component":12}],24:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -4715,8 +4759,10 @@ function todos() {
 
 exports.default = todos;
 
-},{}],24:[function(require,module,exports){
+},{}],25:[function(require,module,exports){
 'use strict';
+
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
 var _shadowComponent = require('shadow-component');
 
@@ -4735,6 +4781,10 @@ var _list2 = _interopRequireDefault(_list);
 var _form = require('./components/todos/form.view');
 
 var _form2 = _interopRequireDefault(_form);
+
+var _filter = require('./components/filter_visibility/filter.view');
+
+var _filter2 = _interopRequireDefault(_filter);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -4757,6 +4807,14 @@ var TodoApp = _shadowComponent2.default.ComponentFactory({
       }
     });
     _shadowComponent2.default.createElement('todo-list', null, statePlusHandlers, {});
+    _shadowComponent2.default.createElement('filter-menu', null, _extends({
+      visibilityFilter: this.state.visibilityFilter,
+      filters: _store3.filters
+    }, {
+      filterHandler: function filterHandler(filter) {
+        _store2.default.dispatch({ type: "SET_VISIBILITY_FILTER", filter: filter });
+      }
+    }));
   }
 });
 
@@ -4768,7 +4826,7 @@ render();
 
 _store2.default.subscribe(render);
 
-},{"./components/filter_visibility/store":19,"./components/todos/form.view":20,"./components/todos/list.view":21,"./store":25,"shadow-component":12}],25:[function(require,module,exports){
+},{"./components/filter_visibility/filter.view":19,"./components/filter_visibility/store":20,"./components/todos/form.view":21,"./components/todos/list.view":22,"./store":26,"shadow-component":12}],26:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -4795,4 +4853,4 @@ var store = (0, _redux.createStore)(reducer);
 
 exports.default = store;
 
-},{"./components/filter_visibility/store":19,"./components/todos/store":23,"redux":7}]},{},[24]);
+},{"./components/filter_visibility/store":20,"./components/todos/store":24,"redux":7}]},{},[25]);

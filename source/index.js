@@ -3,6 +3,7 @@ import store from './store'
 import { filters } from './components/filter_visibility/store'
 import TodoList from './components/todos/list.view'
 import TodoForm from './components/todos/form.view'
+import FilterMenu from './components/filter_visibility/filter.view'
 
 const TodoApp = Shaco.ComponentFactory({
   elementName: 'todo-app',
@@ -32,6 +33,15 @@ const TodoApp = Shaco.ComponentFactory({
       }
     })
     Shaco.createElement('todo-list', null, statePlusHandlers, {})
+    Shaco.createElement('filter-menu', null, {
+      visibilityFilter: this.state.visibilityFilter,
+      filters,
+      ...{
+        filterHandler(filter) {
+          store.dispatch({ type: "SET_VISIBILITY_FILTER", filter: filter })
+        }
+      }
+    })
   }
 })
 

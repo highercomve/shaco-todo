@@ -41,9 +41,9 @@ const Todo = Shaco.ComponentFactory({
 
     ::content .ready:before {
   position: absolute;
-  top: 50%;
+  top: 48%;
   left: %5;
-  width: 90%;
+  width: 80%;
   display: block;
   border-bottom: 1px solid #999;
   content: "";
