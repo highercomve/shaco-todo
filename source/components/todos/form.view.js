@@ -42,8 +42,12 @@ const TodoForm = Shaco.ComponentFactory({
   `,
   submitHandler (e) {
     e.preventDefault()
-    console.log(e.target[0])
-    this.state.submitHandler(e.target[0].value)
+    if (e.target[0].value !== '') {
+      this.state.submitHandler(e.target[0].value)
+    } else {
+      alert('You must write a task first')
+    }
+    e.target[0].value = ''
   },
   view: function() {
     Shaco.createElement('form', null, null, {
@@ -51,7 +55,6 @@ const TodoForm = Shaco.ComponentFactory({
     }, () => {
       Shaco.createElement('input', null, null, {
         type: 'text',
-        ref: (node) => { console.log(node) }
       }),
       Shaco.createElement('button', null, null, {
         type: 'submit'

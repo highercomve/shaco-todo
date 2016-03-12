@@ -4526,8 +4526,12 @@ var TodoForm = _shadowComponent2.default.ComponentFactory({
   template: '\n  <style>\n  ::content form:before,\n  ::content form:after {\n  display: block;\n  content: "";\n  clear: both;\n  }\n\n  ::content input,\n  ::content button {\n  display: block;\n  padding: 0.6em;\n  border: none;\n  background: none;\n  float: left;\n  box-sizing: border-box;\n  }\n\n  ::content input {\n  background-color: white;\n  box-shadow: 0 0 1px 0 #777;\n  width: 70%;\n  }\n\n  ::content button {\n  width: 30%;\n  background-color: #1cc9a8;\n  color: white;\n  box-shadow: 0 0 1px 0 #16a085;\n  }\n  </style>\n  <content></content>\n  ',
   submitHandler: function submitHandler(e) {
     e.preventDefault();
-    console.log(e.target[0]);
-    this.state.submitHandler(e.target[0].value);
+    if (e.target[0].value !== '') {
+      this.state.submitHandler(e.target[0].value);
+    } else {
+      alert('You must write a task first');
+    }
+    e.target[0].value = '';
   },
 
   view: function view() {
@@ -4535,10 +4539,7 @@ var TodoForm = _shadowComponent2.default.ComponentFactory({
       onsubmit: this.submitHandler.bind(this)
     }, function () {
       _shadowComponent2.default.createElement('input', null, null, {
-        type: 'text',
-        ref: function ref(node) {
-          console.log(node);
-        }
+        type: 'text'
       }), _shadowComponent2.default.createElement('button', null, null, {
         type: 'submit'
       }, 'Add todo');
