@@ -2170,24 +2170,20 @@ function createElement(tagName) {
     (0, _incrementalDom.attr)(option, options[option]);
   });
   var element = (0, _incrementalDom.elementOpenEnd)(tagName);
+
   if (typeof element.setState !== 'undefined') {
     element.setState(Object.assign({}, state, { child: child }));
   } else {
-    if (typeof child !== 'undefined') {
-      if (Array.isArray(child)) {
-        child.forEach(function (appendableView) {
-          renderChild(appendableView);
-        });
-      } else {
-        renderChild(child);
-      }
-    }
+    renderChild(child);
   }
   (0, _incrementalDom.elementClose)(tagName);
   return element;
 }
 
 function renderChild(child) {
+  if (typeof child === 'undefined') {
+    return;
+  }
   if (typeof child === 'string') {
     return (0, _incrementalDom.text)(child.trim());
   } else if (typeof child === 'function') {
@@ -2483,7 +2479,7 @@ var defaultTodoState = {
 var Todo = _shadowComponent2.default.ComponentFactory({
   elementName: 'todo-item',
   state: defaultTodoState,
-  template: '\n  <style>\n    ::content li .content,\n      ::content li .todo-remove {\n  float: left;\n  display: block;\n  }\n\n    ::content li .content {\n  width: 92%;\n  }\n\n    ::content li .todo-remove {\n  background: none;\n  color: #e74c3c;\n  border: none;\n  box-shadow: none;\n  font-size: 2.2em;\n  margin-top: -0.3em;\n  line-height: 0.8em;\n  width: 8%;\n  float: right;\n  }\n\n    ::content .ready {\n  color: #999;\n  position: relative;\n  }\n\n    ::content .ready:before {\n  position: absolute;\n  top: 48%;\n  left: %5;\n  width: 80%;\n  display: block;\n  border-bottom: 1px solid #999;\n  content: "";\n  }\n\n    ::content .not-ready {\n  text-decoration: none;\n  }\n\n    ::content li {\n  background-color: #F3F3F3;\n  padding: 1em;\n  border-bottom: 1px solid #CCC;\n  border-top: 1px solid #FFF;\n  position: relative;\n  }\n    ::content li:before,\n      ::content li:after {\n  content: "";\n  display: block;\n  clear: both;\n  }\n  </style>\n  <div class="todo-item">\n  <content></content>\n  </div>\n  ',
+  template: '\n  <style>\n    ::content li .content,\n      ::content li .todo-remove {\n  float: left;\n  display: block;\n  }\n\n    ::content li .content {\n  width: 92%;\n  }\n\n    ::content li .todo-remove {\n  background: none;\n  color: #e74c3c;\n  border: none;\n  box-shadow: none;\n  font-size: 2.2em;\n  margin-top: -0.2em;\n  line-height: 0.8em;\n  width: 8%;\n  float: right;\n  }\n\n    ::content .ready {\n  color: #999;\n  position: relative;\n  }\n\n    ::content .ready:before {\n  position: absolute;\n  top: 48%;\n  left: %5;\n  width: 80%;\n  display: block;\n  border-bottom: 1px solid #999;\n  content: "";\n  }\n\n    ::content .not-ready {\n  text-decoration: none;\n  }\n\n    ::content li {\n  background-color: #F3F3F3;\n  padding: 1em;\n  border-bottom: 1px solid #CCC;\n  border-top: 1px solid #FFF;\n  position: relative;\n  }\n    ::content li:before,\n      ::content li:after {\n  content: "";\n  display: block;\n  clear: both;\n  }\n  </style>\n  <div class="todo-item">\n  <content></content>\n  </div>\n  ',
   view: function view() {
     var _state = this.state;
     var text = _state.text;

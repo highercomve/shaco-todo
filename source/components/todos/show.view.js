@@ -28,7 +28,7 @@ const Todo = Shaco.ComponentFactory({
   border: none;
   box-shadow: none;
   font-size: 2.2em;
-  margin-top: -0.3em;
+  margin-top: -0.2em;
   line-height: 0.8em;
   width: 8%;
   float: right;
