@@ -2079,20 +2079,32 @@ function validateRequiredFields(options) {
 
 function renderFactory(view) {
   return {
-    render: function render() {
-      var result = view.bind(this)();
-      if (typeof result === 'function') {
-        result.bind(this)();
+    render: function render(reRender) {
+      if (!reRender) {
+        renderElement(view, this);
+      } else {
+        (0, _incrementalDom.patch)(this, function (scope) {
+          renderElement(view, scope);
+        }, this);
       }
     }
   };
 }
 
+function renderElement(view, scope) {
+  var result = view.bind(scope)();
+  if (typeof result === 'function') {
+    result.bind(scope)();
+  }
+}
+
 function setStateFactory() {
   return {
     setState: function setState(newState) {
+      var force = arguments.length <= 1 || arguments[1] === undefined ? false : arguments[1];
+
       this.state = Object.assign({}, this.state, newState);
-      this.render();
+      this.render(force);
       return this.state;
     }
   };
@@ -2342,6 +2354,8 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
 var _shadowComponent = require('shadow-component');
 
 var _shadowComponent2 = _interopRequireDefault(_shadowComponent);
@@ -2352,29 +2366,43 @@ var TodoForm = _shadowComponent2.default.ComponentFactory({
   elementName: 'todo-form',
   state: {
     text: '',
-    submitHandler: function submitHandler() {}
+    submitHandler: function submitHandler() {},
+    errors: []
   },
-  template: '\n  <style>\n  ::content form:before,\n  ::content form:after {\n  display: block;\n  content: "";\n  clear: both;\n  }\n\n  ::content input,\n  ::content button {\n  display: block;\n  padding: 0.6em;\n  border: none;\n  background: none;\n  float: left;\n  box-sizing: border-box;\n  }\n\n  ::content input {\n  background-color: white;\n  box-shadow: 0 0 1px 0 #777;\n  width: 70%;\n  }\n\n  ::content button {\n  width: 30%;\n  background-color: #1cc9a8;\n  color: white;\n  box-shadow: 0 0 1px 0 #16a085;\n  }\n  </style>\n  <content></content>\n  ',
+  template: '\n  <style>\n  ::content form:before,\n  ::content form:after {\n  display: block;\n  content: "";\n  clear: both;\n  }\n\n  ::content input,\n  ::content button {\n  display: block;\n  padding: 0.6em;\n  border: none;\n  background: none;\n  float: left;\n  box-sizing: border-box;\n  }\n\n  ::content input {\n  background-color: white;\n  box-shadow: 0 0 1px 0 #777;\n  width: 70%;\n  }\n\n  ::content button {\n  width: 30%;\n  background-color: #1cc9a8;\n  color: white;\n  box-shadow: 0 0 1px 0 #16a085;\n  }\n\n    ::content .error {\n  padding: 0.8em 0.5em;\n  font-size: 0.9em;\n  color: red;\n  }\n  </style>\n  <content></content>\n  ',
   submitHandler: function submitHandler(e) {
     e.preventDefault();
     if (e.target[0].value !== '') {
       this.state.submitHandler(e.target[0].value);
+      // Remove errors and render again
+      this.setState(_extends({}, this.state, {
+        errors: []
+      }), true); // this true to patch the component
     } else {
-      alert('You must write a task first');
-    }
+        this.setState(_extends({}, this.state, {
+          errors: ['You must write a Task']
+        }), true); // for patch the element
+      }
     e.target[0].value = '';
   },
 
   view: function view() {
+    // Using just Shaco.createElement
     _shadowComponent2.default.createElement('form', null, null, {
       onsubmit: this.submitHandler.bind(this)
     }, function () {
       _shadowComponent2.default.createElement('input', null, null, {
-        type: 'text'
+        type: 'text',
+        placeholder: 'What you have to do?'
       }), _shadowComponent2.default.createElement('button', null, null, {
         type: 'submit'
       }, 'Add todo');
     });
+    if (this.state.errors.length > 0) {
+      this.state.errors.map(function (error, index) {
+        _shadowComponent2.default.createElement('div', index, {}, { class: 'error' }, '' + error);
+      });
+    }
   }
 });
 
@@ -2479,7 +2507,7 @@ var defaultTodoState = {
 var Todo = _shadowComponent2.default.ComponentFactory({
   elementName: 'todo-item',
   state: defaultTodoState,
-  template: '\n  <style>\n    ::content li .content,\n      ::content li .todo-remove {\n  float: left;\n  display: block;\n  }\n\n    ::content li .content {\n  width: 92%;\n  }\n\n    ::content li .todo-remove {\n  background: none;\n  color: #e74c3c;\n  border: none;\n  box-shadow: none;\n  font-size: 2.2em;\n  margin-top: -0.2em;\n  line-height: 0.8em;\n  width: 8%;\n  float: right;\n  }\n\n    ::content .ready {\n  color: #999;\n  position: relative;\n  }\n\n    ::content .ready:before {\n  position: absolute;\n  top: 48%;\n  left: %5;\n  width: 80%;\n  display: block;\n  border-bottom: 1px solid #999;\n  content: "";\n  }\n\n    ::content .not-ready {\n  text-decoration: none;\n  }\n\n    ::content li {\n  background-color: #F3F3F3;\n  padding: 1em;\n  border-bottom: 1px solid #CCC;\n  border-top: 1px solid #FFF;\n  position: relative;\n  }\n    ::content li:before,\n      ::content li:after {\n  content: "";\n  display: block;\n  clear: both;\n  }\n  </style>\n  <div class="todo-item">\n  <content></content>\n  </div>\n  ',
+  template: '\n  <style>\n    ::content li .content,\n      ::content li .todo-remove {\n  float: left;\n  display: block;\n  }\n\n    ::content li .content {\n  width: 92%;\n  }\n\n    ::content li .todo-remove {\n  background: none;\n  color: #e74c3c;\n  border: none;\n  box-shadow: none;\n  font-size: 2.2em;\n  margin-top: -0.5em;\n  line-height: 0.8em;\n  width: 8%;\n  float: right;\n  position: relative;\n  top: 0.2em;\n  }\n\n    ::content .ready {\n  color: #999;\n  position: relative;\n  }\n\n    ::content .ready:before {\n  position: absolute;\n  top: 48%;\n  left: %5;\n  width: 80%;\n  display: block;\n  border-bottom: 1px solid #999;\n  content: "";\n  }\n\n    ::content .not-ready {\n  text-decoration: none;\n  }\n\n    ::content li {\n  background-color: #F3F3F3;\n  padding: 1em;\n  border-bottom: 1px solid #CCC;\n  border-top: 1px solid #FFF;\n  position: relative;\n  }\n    ::content li:before,\n      ::content li:after {\n  content: "";\n  display: block;\n  clear: both;\n  }\n  </style>\n  <div class="todo-item">\n  <content></content>\n  </div>\n  ',
   view: function view() {
     var _state = this.state;
     var text = _state.text;
@@ -2585,8 +2613,6 @@ exports.default = todos;
 },{}],25:[function(require,module,exports){
 'use strict';
 
-var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
-
 var _shadowComponent = require('shadow-component');
 
 var _shadowComponent2 = _interopRequireDefault(_shadowComponent);
@@ -2615,8 +2641,8 @@ var TodoApp = _shadowComponent2.default.ComponentFactory({
   elementName: 'todo-app',
   state: _store2.default.getState(),
   template: '\n  <style>\n    :host {\n  font-family: Helvetica;\n  max-width: 500px;\n  margin: 0 auto;\n  display: block;\n  }\n  </style>\n  <content></content>',
-  view: function view() {
-    var statePlusHandlers = Object.assign({}, this.state, {
+  statePlusHandlers: function statePlusHandlers() {
+    return Object.assign({}, this.state, {
       toggleHandler: function toggleHandler(index) {
         _store2.default.dispatch({ type: "TOGGLE_TODO", index: index });
       },
@@ -2624,20 +2650,29 @@ var TodoApp = _shadowComponent2.default.ComponentFactory({
         _store2.default.dispatch({ type: "REMOVE_TODO", index: index });
       }
     });
-    _shadowComponent2.default.createElement('todo-form', null, {
+  },
+  submitHandlerFactory: function submitHandlerFactory() {
+    return {
       submitHandler: function submitHandler(value) {
         _store2.default.dispatch({ type: "ADD_TODO", text: value });
       }
-    });
-    _shadowComponent2.default.createElement('todo-list', null, statePlusHandlers, {});
-    _shadowComponent2.default.createElement('filter-menu', null, _extends({
+    };
+  },
+  filterMenuState: function filterMenuState() {
+    return {
       visibilityFilter: this.state.visibilityFilter,
-      filters: _store3.filters
-    }, {
       filterHandler: function filterHandler(filter) {
         _store2.default.dispatch({ type: "SET_VISIBILITY_FILTER", filter: filter });
-      }
-    }));
+      },
+
+      filters: _store3.filters
+    };
+  },
+
+  view: function view() {
+    _shadowComponent2.default.createElement('todo-form', null, this.submitHandlerFactory());
+    _shadowComponent2.default.createElement('todo-list', null, this.statePlusHandlers());
+    _shadowComponent2.default.createElement('filter-menu', null, this.filterMenuState());
   }
 });
 

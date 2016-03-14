@@ -18,8 +18,8 @@ const TodoApp = Shaco.ComponentFactory({
   }
   </style>
   <content></content>`,
-  view: function() {
-    let statePlusHandlers = Object.assign({}, this.state, {
+  statePlusHandlers() {
+    return Object.assign({}, this.state, {
       toggleHandler (index) {
         store.dispatch({ type: "TOGGLE_TODO", index: index})
       },
@@ -27,21 +27,27 @@ const TodoApp = Shaco.ComponentFactory({
         store.dispatch({ type: "REMOVE_TODO", index: index})
       }
     })
-    Shaco.createElement('todo-form', null, {
+  },
+  submitHandlerFactory() {
+    return {
       submitHandler(value) {
         store.dispatch({ type: "ADD_TODO", text: value })
       }
-    })
-    Shaco.createElement('todo-list', null, statePlusHandlers, {})
-    Shaco.createElement('filter-menu', null, {
+    }
+  },
+  filterMenuState() {
+    return {
       visibilityFilter: this.state.visibilityFilter,
-      filters,
-      ...{
-        filterHandler(filter) {
+      filterHandler(filter) {
           store.dispatch({ type: "SET_VISIBILITY_FILTER", filter: filter })
-        }
-      }
-    })
+      },
+      filters
+    }
+  },
+  view: function() {
+    Shaco.createElement('todo-form', null, this.submitHandlerFactory())
+    Shaco.createElement('todo-list', null, this.statePlusHandlers())
+    Shaco.createElement('filter-menu', null, this.filterMenuState())
   }
 })
 

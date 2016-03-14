@@ -4,7 +4,8 @@ const TodoForm = Shaco.ComponentFactory({
   elementName: 'todo-form',
   state: {
     text: '',
-    submitHandler: function() {}
+    submitHandler: function() {},
+    errors: []
   },
   template: `
   <style>
@@ -37,6 +38,12 @@ const TodoForm = Shaco.ComponentFactory({
   color: white;
   box-shadow: 0 0 1px 0 #16a085;
   }
+
+    ::content .error {
+  padding: 0.8em 0.5em;
+  font-size: 0.9em;
+  color: red;
+  }
   </style>
   <content></content>
   `,
@@ -44,22 +51,37 @@ const TodoForm = Shaco.ComponentFactory({
     e.preventDefault()
     if (e.target[0].value !== '') {
       this.state.submitHandler(e.target[0].value)
+      // Remove errors and render again
+      this.setState({
+        ...this.state,
+        errors: []
+      }, true) // this true to patch the component
     } else {
-      alert('You must write a task first')
+      this.setState({
+        ...this.state,
+        errors: ['You must write a Task']
+      }, true) // for patch the element
     }
     e.target[0].value = ''
   },
   view: function() {
+    // Using just Shaco.createElement
     Shaco.createElement('form', null, null, {
       onsubmit: this.submitHandler.bind(this)
     }, () => {
       Shaco.createElement('input', null, null, {
         type: 'text',
+        placeholder: 'What you have to do?'
       }),
       Shaco.createElement('button', null, null, {
         type: 'submit'
       }, 'Add todo')
     })
+    if (this.state.errors.length > 0) {
+      this.state.errors.map((error, index) => {
+        Shaco.createElement('div', index, {}, { class: 'error'}, `${error}`)
+      })
+    }
   }
 })
 

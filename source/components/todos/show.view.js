@@ -28,10 +28,12 @@ const Todo = Shaco.ComponentFactory({
   border: none;
   box-shadow: none;
   font-size: 2.2em;
-  margin-top: -0.2em;
+  margin-top: -0.5em;
   line-height: 0.8em;
   width: 8%;
   float: right;
+  position: relative;
+  top: 0.2em;
   }
 
     ::content .ready {
