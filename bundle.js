@@ -92,6 +92,26 @@ process.chdir = function (dir) {
 process.umask = function() { return 0; };
 
 },{}],2:[function(require,module,exports){
+"use strict";
+
+var Shaco = require('shadow-component').default
+
+module.exports = function jsxToShaco(jsxObject) {
+  var key = jsxObject.attributes.key
+  var state = jsxObject.attributes.state
+  var options = Object.assign({}, jsxObject.attributes, {key: undefined, state: undefined})
+  return function () {
+    Shaco.createElement(
+      jsxObject.elementName,
+      key,
+      state,
+      options,
+      jsxObject.children
+    )
+  }
+}
+
+},{"shadow-component":13}],3:[function(require,module,exports){
 'use strict';
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
@@ -149,7 +169,7 @@ function applyMiddleware() {
     };
   };
 }
-},{"./compose":5}],3:[function(require,module,exports){
+},{"./compose":6}],4:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -201,7 +221,7 @@ function bindActionCreators(actionCreators, dispatch) {
   }
   return boundActionCreators;
 }
-},{}],4:[function(require,module,exports){
+},{}],5:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -331,7 +351,7 @@ function combineReducers(reducers) {
   };
 }
 }).call(this,require('_process'))
-},{"./createStore":6,"./utils/warning":8,"_process":1,"lodash/isPlainObject":11}],5:[function(require,module,exports){
+},{"./createStore":7,"./utils/warning":9,"_process":1,"lodash/isPlainObject":12}],6:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -361,7 +381,7 @@ function compose() {
     }, last.apply(undefined, arguments));
   };
 }
-},{}],6:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -578,7 +598,7 @@ function createStore(reducer, initialState, enhancer) {
     replaceReducer: replaceReducer
   };
 }
-},{"lodash/isPlainObject":11}],7:[function(require,module,exports){
+},{"lodash/isPlainObject":12}],8:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -627,7 +647,7 @@ exports.bindActionCreators = _bindActionCreators2["default"];
 exports.applyMiddleware = _applyMiddleware2["default"];
 exports.compose = _compose2["default"];
 }).call(this,require('_process'))
-},{"./applyMiddleware":2,"./bindActionCreators":3,"./combineReducers":4,"./compose":5,"./createStore":6,"./utils/warning":8,"_process":1}],8:[function(require,module,exports){
+},{"./applyMiddleware":3,"./bindActionCreators":4,"./combineReducers":5,"./compose":6,"./createStore":7,"./utils/warning":9,"_process":1}],9:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -652,7 +672,7 @@ function warning(message) {
   } catch (e) {}
   /* eslint-enable no-empty */
 }
-},{}],9:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 /**
  * Checks if `value` is a host object in IE < 9.
  *
@@ -674,7 +694,7 @@ function isHostObject(value) {
 
 module.exports = isHostObject;
 
-},{}],10:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 /**
  * Checks if `value` is object-like. A value is object-like if it's not `null`
  * and has a `typeof` result of "object".
@@ -704,7 +724,7 @@ function isObjectLike(value) {
 
 module.exports = isObjectLike;
 
-},{}],11:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 var isHostObject = require('./_isHostObject'),
     isObjectLike = require('./isObjectLike');
 
@@ -772,12 +792,12 @@ function isPlainObject(value) {
 
 module.exports = isPlainObject;
 
-},{"./_isHostObject":9,"./isObjectLike":10}],12:[function(require,module,exports){
+},{"./_isHostObject":10,"./isObjectLike":11}],13:[function(require,module,exports){
 'use strict';
 
 module.exports = require('./source/index.js');
 
-},{"./source/index.js":17}],13:[function(require,module,exports){
+},{"./source/index.js":18}],14:[function(require,module,exports){
 (function (process){
 
 /**
@@ -1955,7 +1975,7 @@ exports.text = function (value, var_args) {
 };
 
 }).call(this,require('_process'))
-},{"_process":1}],14:[function(require,module,exports){
+},{"_process":1}],15:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -2015,7 +2035,7 @@ function Builder(tagName, options) {
 
 exports.default = Builder;
 
-},{}],15:[function(require,module,exports){
+},{}],16:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -2060,7 +2080,10 @@ function validateRequiredFields(options) {
 function renderFactory(view) {
   return {
     render: function render() {
-      view.bind(this)();
+      var result = view.bind(this)();
+      if (typeof result === 'function') {
+        result.bind(this)();
+      }
     }
   };
 }
@@ -2088,7 +2111,7 @@ function TagFactory() {
 
 exports.default = TagFactory;
 
-},{"./builder":14,"./exceptions":16,"incremental-dom":13}],16:[function(require,module,exports){
+},{"./builder":15,"./exceptions":17,"incremental-dom":14}],17:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -2115,7 +2138,7 @@ var ComponentExceptions = {
 
 exports.default = ComponentExceptions;
 
-},{}],17:[function(require,module,exports){
+},{}],18:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -2148,21 +2171,32 @@ function createElement(tagName) {
   });
   var element = (0, _incrementalDom.elementOpenEnd)(tagName);
   if (typeof element.setState !== 'undefined') {
-    element.setState(state);
-  }
-  if (typeof child !== 'undefined') {
-    if (Array.isArray(child)) {
-      child.forEach(function (appendableView) {
-        appendableView();
-      });
-    } else if (typeof child === 'string') {
-      (0, _incrementalDom.text)(child);
-    } else {
-      child();
+    element.setState(Object.assign({}, state, { child: child }));
+  } else {
+    if (typeof child !== 'undefined') {
+      if (Array.isArray(child)) {
+        child.forEach(function (appendableView) {
+          renderChild(appendableView);
+        });
+      } else {
+        renderChild(child);
+      }
     }
   }
   (0, _incrementalDom.elementClose)(tagName);
   return element;
+}
+
+function renderChild(child) {
+  if (typeof child === 'string') {
+    return (0, _incrementalDom.text)(child.trim());
+  } else if (typeof child === 'function') {
+    return child();
+  } else if (Array.isArray(child)) {
+    child.forEach(renderChild);
+  } else {
+    return child;
+  }
 }
 
 function ComponentFactory() {
@@ -2190,12 +2224,16 @@ var Shaco = {
 
 exports.default = Shaco;
 
-},{"./create":15,"incremental-dom":13}],18:[function(require,module,exports){
+},{"./create":16,"incremental-dom":14}],19:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+
+var _jsxToShaco = require('jsx-to-shaco');
+
+var _jsxToShaco2 = _interopRequireDefault(_jsxToShaco);
 
 var _shadowComponent = require('shadow-component');
 
@@ -2205,36 +2243,57 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 var FilterBy = _shadowComponent2.default.ComponentFactory({
   elementName: 'filter-by',
-  template: '\n  <style>\n    :host {\n  display: table-cell;\n  width: 1%;\n  text-decoration: none;\n  background-color: #ecf0f1;\n  text-align: center;\n  pointer: cursor;\n  }\n    ::content a {\n    display: block;\n  padding: 0.8em 0.4em;\n  color: #333;\n  cursor: pointer;\n  }\n    ::content a.active {\n  background-color: #2980b9;\n  color: white;\n  }\n  </style>\n  <content></content>\n  ',
+  template: '\n  <style>\n    :host {\n  display: table-cell;\n  width: 1%;\n  text-decoration: none;\n  background-color: #ecf0f1;\n  text-align: center;\n  pointer: cursor;\n  }\n    ::content a {\n  display: block;\n  padding: 0.8em 0.4em;\n  color: #333;\n  cursor: pointer;\n  }\n    ::content a.active {\n  background-color: #2980b9;\n  color: white;\n  }\n  </style>\n  <content></content>\n  ',
   view: function view() {
-    _shadowComponent2.default.createElement('a', null, null, {
-      onclick: this.state.filterHandler,
-      class: this.state.visibilityFilter === this.state.type ? 'active' : ''
-    }, '' + this.state.text);
+    return (0, _jsxToShaco2.default)({
+      elementName: 'a',
+      attributes: {
+        class: this.state.visibilityFilter === this.state.type ? 'active' : '',
+        onclick: this.state.filterHandler
+      },
+      children: [' ', this.state.text, ' ']
+    });
   }
 });
 
 var FilterMenu = _shadowComponent2.default.ComponentFactory({
   elementName: 'filter-menu',
-  template: '\n  <style>\n    ::content {\n  display: table;\n  width: 100%;\n  }\n  </style>\n  <content></content>\n  ',
-  view: function view() {
+  template: '\n  <style>\n    ::content .table-justify {\n  display: table;\n  width: 100%;\n  }\n  </style>\n  <content></content>\n  ',
+  filterPlusHandler: function filterPlusHandler(filter) {
     var _this = this;
 
-    this.state.filters.map(function (filter, index) {
-      var filterPlusHandler = Object.assign({}, filter, {
-        visibilityFilter: _this.state.visibilityFilter,
-        filterHandler: function filterHandler() {
-          _this.state.filterHandler(filter.type);
-        }
-      });
-      _shadowComponent2.default.createElement('filter-by', null, filterPlusHandler, {});
+    return Object.assign({}, filter, {
+      visibilityFilter: this.state.visibilityFilter,
+      filterHandler: function filterHandler() {
+        _this.state.filterHandler(filter.type);
+      }
+    });
+  },
+
+  view: function view() {
+    var _this2 = this;
+
+    return (0, _jsxToShaco2.default)({
+      elementName: 'div',
+      attributes: {
+        class: 'table-justify'
+      },
+      children: [' ', this.state.filters.map(function (filter, index) {
+        return (0, _jsxToShaco2.default)({
+          elementName: 'filter-by',
+          attributes: {
+            state: _this2.filterPlusHandler(filter)
+          },
+          children: []
+        });
+      }), ' ']
     });
   }
 });
 
 exports.default = FilterMenu;
 
-},{"shadow-component":12}],19:[function(require,module,exports){
+},{"jsx-to-shaco":2,"shadow-component":13}],20:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -2280,7 +2339,7 @@ var filters = exports.filters = [{
   text: "Completed task"
 }];
 
-},{}],20:[function(require,module,exports){
+},{}],21:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -2325,12 +2384,16 @@ var TodoForm = _shadowComponent2.default.ComponentFactory({
 
 exports.default = TodoForm;
 
-},{"shadow-component":12}],21:[function(require,module,exports){
+},{"shadow-component":13}],22:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+
+var _jsxToShaco = require('jsx-to-shaco');
+
+var _jsxToShaco2 = _interopRequireDefault(_jsxToShaco);
 
 var _shadowComponent = require('shadow-component');
 
@@ -2352,39 +2415,57 @@ var defaultTodosState = {
 var TodoList = _shadowComponent2.default.ComponentFactory({
   elementName: 'todo-list',
   state: defaultTodosState,
-  template: '\n  <style>\n    ::content ul {\n  list-style: none;\n  margin: 1em 0;\n  padding: 0;\n  }\n\n    ::content li:first-child {\n  border-top: none;\n  }\n\n    ::content li:last-child {\n  border-bottom: none;\n  }\n  h2 {\n    padding: 0.1em 0;\n    margin: 0.5em 0;\n  }\n  </style>\n  <h2>My todo list</h2>\n  <content></content>\n  ',
-  view: function view() {
+  template: '\n  <style>\n    ::content ul {\n  list-style: none;\n  margin: 1em 0;\n  padding: 0;\n  }\n\n    ::content li:first-child {\n  border-top: none;\n  }\n\n    ::content li:last-child {\n  border-bottom: none;\n  }\n  h2 {\n  padding: 0.1em 0;\n  margin: 0.5em 0;\n  }\n  </style>\n  <h2>My todo list</h2>\n  <content></content>\n  ',
+  todoPlushandlers: function todoPlushandlers(todo, index) {
     var _this = this;
+
+    return Object.assign({}, todo, {
+      clickHandler: function clickHandler(e) {
+        _this.state.toggleHandler(index);
+      },
+      removeHandler: function removeHandler() {
+        _this.state.removeHandler(index);
+      }
+    });
+  },
+
+  view: function view() {
+    var _this2 = this;
 
     var _state = this.state;
     var todos = _state.todos;
     var visibilityFilter = _state.visibilityFilter;
 
     var visibleTodos = (0, _store.filterTodos)(todos, visibilityFilter);
-    _shadowComponent2.default.createElement('ul', null, null, {}, function () {
-      visibleTodos.map(function (todo, index) {
-        var todoPlushandlers = Object.assign({}, todo, {
-          clickHandler: function clickHandler(e) {
-            _this.state.toggleHandler(index);
+    return (0, _jsxToShaco2.default)({
+      elementName: 'ul',
+      attributes: {},
+      children: [' ', visibleTodos.map(function (todo, index) {
+        return (0, _jsxToShaco2.default)({
+          elementName: 'todo-item',
+          attributes: {
+            key: index,
+            state: _this2.todoPlushandlers(todo, index)
           },
-          removeHandler: function removeHandler() {
-            _this.state.removeHandler(index);
-          }
+          children: []
         });
-        _shadowComponent2.default.createElement('todo-item', index, todoPlushandlers);
-      });
+      }), ' ']
     });
   }
 });
 
 exports.default = TodoList;
 
-},{"../filter_visibility/store":19,"./show.view":22,"shadow-component":12}],22:[function(require,module,exports){
+},{"../filter_visibility/store":20,"./show.view":23,"jsx-to-shaco":2,"shadow-component":13}],23:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+
+var _jsxToShaco = require('jsx-to-shaco');
+
+var _jsxToShaco2 = _interopRequireDefault(_jsxToShaco);
 
 var _shadowComponent = require('shadow-component');
 
@@ -2409,25 +2490,39 @@ var Todo = _shadowComponent2.default.ComponentFactory({
     var clickHandler = _state.clickHandler;
     var removeHandler = _state.removeHandler;
     var completed = _state.completed;
+    var child = _state.child;
 
-    _shadowComponent2.default.createElement('li', null, null, {
-      class: completed ? 'ready' : 'not-ready'
-    }, function () {
-      _shadowComponent2.default.createElement('span', null, null, {
-        class: 'content',
-        onclick: clickHandler
-      }, '' + text);
-      _shadowComponent2.default.createElement('button', null, null, {
-        class: 'todo-remove',
-        onclick: removeHandler
-      }, '☒');
+    return (0, _jsxToShaco2.default)({
+      elementName: 'li',
+      attributes: {
+        class: completed ? 'ready' : 'not-ready'
+      },
+      children: [' ', (0, _jsxToShaco2.default)({
+        elementName: 'span',
+        attributes: {
+          class: 'content',
+          onclick: function onclick() {
+            clickHandler();
+          }
+        },
+        children: [' ', text, ' ']
+      }), ' ', (0, _jsxToShaco2.default)({
+        elementName: 'button',
+        attributes: {
+          class: 'todo-remove',
+          onclick: function onclick() {
+            removeHandler();
+          }
+        },
+        children: [' ', '☒', ' ']
+      }), ' ']
     });
   }
 });
 
 exports.default = Todo;
 
-},{"shadow-component":12}],23:[function(require,module,exports){
+},{"jsx-to-shaco":2,"shadow-component":13}],24:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -2491,7 +2586,7 @@ function todos() {
 
 exports.default = todos;
 
-},{}],24:[function(require,module,exports){
+},{}],25:[function(require,module,exports){
 'use strict';
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
@@ -2558,7 +2653,7 @@ render();
 
 _store2.default.subscribe(render);
 
-},{"./components/filter_visibility/filter.view":18,"./components/filter_visibility/store":19,"./components/todos/form.view":20,"./components/todos/list.view":21,"./store":25,"shadow-component":12}],25:[function(require,module,exports){
+},{"./components/filter_visibility/filter.view":19,"./components/filter_visibility/store":20,"./components/todos/form.view":21,"./components/todos/list.view":22,"./store":26,"shadow-component":13}],26:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -2585,4 +2680,4 @@ var store = (0, _redux.createStore)(reducer);
 
 exports.default = store;
 
-},{"./components/filter_visibility/store":19,"./components/todos/store":23,"redux":7}]},{},[24]);
+},{"./components/filter_visibility/store":20,"./components/todos/store":24,"redux":8}]},{},[25]);

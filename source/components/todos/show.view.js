@@ -72,19 +72,17 @@ const Todo = Shaco.ComponentFactory({
   </div>
   `,
   view: function() {
-    let { text, clickHandler, removeHandler, completed } = this.state
-    Shaco.createElement('li', null, null, {
-      class: (completed) ? 'ready':'not-ready'
-    }, () => {
-      Shaco.createElement('span', null, null, {
-        class: 'content',
-        onclick: clickHandler
-      }, `${text}`)
-      Shaco.createElement('button', null, null, {
-        class: 'todo-remove',
-        onclick:  removeHandler
-      }, '\u2612')
-    })
+    let { text, clickHandler, removeHandler, completed, child} = this.state
+    return (
+      <li class={(completed) ? 'ready':'not-ready'}>
+        <span class="content" onclick={() => { clickHandler() }}>
+          {text}
+        </span>
+        <button class="todo-remove" onclick={ () => { removeHandler() }}>
+          {'\u2612'}
+        </button>
+      </li>
+    )
   }
 })
 

@@ -27,25 +27,31 @@ const TodoList = Shaco.ComponentFactory({
   border-bottom: none;
   }
   h2 {
-    padding: 0.1em 0;
-    margin: 0.5em 0;
+  padding: 0.1em 0;
+  margin: 0.5em 0;
   }
   </style>
   <h2>My todo list</h2>
   <content></content>
   `,
+  todoPlushandlers(todo, index) {
+    return Object.assign({}, todo, {
+      clickHandler: (e) =>  { this.state.toggleHandler(index) },
+        removeHandler: () => { this.state.removeHandler(index) }
+    })
+  },
   view: function () {
     const { todos, visibilityFilter } = this.state
     const visibleTodos = filterTodos(todos, visibilityFilter)
-    Shaco.createElement('ul', null, null, {}, () => {
-      visibleTodos.map((todo, index) => {
-        let todoPlushandlers = Object.assign({}, todo, {
-          clickHandler: (e) =>  { this.state.toggleHandler(index) },
-          removeHandler: () => { this.state.removeHandler(index) }
-        })
-        Shaco.createElement('todo-item', index, todoPlushandlers)
-      })
-    })
+    return (
+      <ul>
+        { visibleTodos.map((todo, index) => {
+          return (
+            <todo-item key={index} state={ this.todoPlushandlers(todo, index)}></todo-item>
+          )
+        })}
+      </ul>
+    )
   }
 })
 

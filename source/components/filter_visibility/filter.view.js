@@ -13,7 +13,7 @@ const FilterBy = Shaco.ComponentFactory({
   pointer: cursor;
   }
     ::content a {
-    display: block;
+  display: block;
   padding: 0.8em 0.4em;
   color: #333;
   cursor: pointer;
@@ -26,10 +26,12 @@ const FilterBy = Shaco.ComponentFactory({
   <content></content>
   `,
   view: function() {
-    Shaco.createElement('a', null, null, {
-      onclick: this.state.filterHandler,
-      class: (this.state.visibilityFilter === this.state.type) ? 'active': ''
-    }, `${this.state.text}`)
+    return (
+      <a class={(this.state.visibilityFilter === this.state.type) ? 'active': ''}
+        onclick={this.state.filterHandler}>
+        {this.state.text}
+      </a>
+    )
   }
 })
 
@@ -37,23 +39,31 @@ const FilterMenu = Shaco.ComponentFactory({
   elementName: 'filter-menu',
   template: `
   <style>
-    ::content {
+    ::content .table-justify {
   display: table;
   width: 100%;
   }
   </style>
   <content></content>
   `,
-  view: function() {
-    this.state.filters.map((filter, index) => {
-      let filterPlusHandler = Object.assign({}, filter, {
-        visibilityFilter: this.state.visibilityFilter,
-        filterHandler: () => {
-          this.state.filterHandler(filter.type)
-        }
-      })
-      Shaco.createElement('filter-by', null, filterPlusHandler, {})
+  filterPlusHandler(filter) {
+    return Object.assign({}, filter, {
+      visibilityFilter: this.state.visibilityFilter,
+      filterHandler: () => {
+        this.state.filterHandler(filter.type)
+      }
     })
+  },
+  view: function() {
+    return (
+      <div class="table-justify">
+        { this.state.filters.map((filter, index) => {
+          return (
+            <filter-by state={this.filterPlusHandler(filter)}></filter-by>
+            )
+        })}
+      </div>
+    )
   }
 })
 
