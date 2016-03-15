@@ -13,6 +13,11 @@ const TodoList = Shaco.ComponentFactory({
   state: defaultTodosState,
   template: `
   <style>
+    :host {
+    display: block;
+  padding-top: 3em;
+  padding-bottom: 3em;
+  }
     ::content ul {
   list-style: none;
   margin: 1em 0;

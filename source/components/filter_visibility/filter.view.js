@@ -42,6 +42,11 @@ const FilterMenu = Shaco.ComponentFactory({
     ::content .table-justify {
   display: table;
   width: 100%;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  z-index: 100;
   }
   </style>
   <content></content>
