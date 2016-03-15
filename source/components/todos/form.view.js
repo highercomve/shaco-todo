@@ -9,6 +9,21 @@ const TodoForm = Shaco.ComponentFactory({
   },
   template: `
   <style>
+    :host {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    padding: 0em 0;
+    box-shadow: 0 0 2px 0 rgba(0,0,0,0.5);
+    z-index: 100;
+    background-color: white;
+  }
+
+    ::content form {
+    max-width: 500px;
+    margin: 0 auto;
+  }
   ::content form:before,
   ::content form:after {
   display: block;
@@ -19,10 +34,11 @@ const TodoForm = Shaco.ComponentFactory({
   ::content input,
   ::content button {
   display: block;
-  padding: 0.6em;
+  padding: 1em;
   border: none;
   background: none;
   float: left;
+  font-size: 1.1em;
   box-sizing: border-box;
   }
 
@@ -34,6 +50,7 @@ const TodoForm = Shaco.ComponentFactory({
 
   ::content button {
   width: 30%;
+  float: right;
   background-color: #1cc9a8;
   color: white;
   box-shadow: 0 0 1px 0 #16a085;
