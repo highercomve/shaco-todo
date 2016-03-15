@@ -36,7 +36,7 @@ function createStore (reducer) {
     mustBeTypeOf(listener, 'function', 'Listener must be a function')
     listeners.push(listener)
     return () => {
-      listeners.filter(f => { f !== filter })
+      listeners = listeners.filter(f => { f !== filter })
     }
   }
 
