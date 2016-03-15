@@ -77,5 +77,5 @@ function renderSeveralTimes (max) {
       clearInterval(interval)
     }
   }
-
+  return interval
 }
