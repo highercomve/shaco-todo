@@ -53,6 +53,7 @@ const TodoForm = Shaco.ComponentFactory({
   float: right;
   background-color: #1cc9a8;
   color: white;
+  padding: 1em 0.2em;
   box-shadow: 0 0 1px 0 #16a085;
   }
 
