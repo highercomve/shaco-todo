@@ -58,6 +58,9 @@ const TodoForm = Shaco.ComponentFactory({
   }
 
     ::content .error {
+  max-width: 500px;
+  margin: 0 auto;
+  width: 100%;
   padding: 0.8em 0.5em;
   font-size: 0.9em;
   color: red;

@@ -39,7 +39,7 @@ const TodoApp = Shaco.ComponentFactory({
     return {
       visibilityFilter: this.state.visibilityFilter,
       filterHandler(filter) {
-          store.dispatch({ type: "SET_VISIBILITY_FILTER", filter: filter })
+        store.dispatch({ type: "SET_VISIBILITY_FILTER", filter: filter })
       },
       filters
     }
@@ -57,25 +57,5 @@ const render = () => {
 
 render()
 
+store.subscribe(render)
 
-if (navigator.userAgent.toLowerCase().indexOf('chrome') === -1) {
-  renderSeveralTimes(10)
-  store.subscribe(() => {
-    renderSeveralTimes(1)
-  })
-} else {
-  store.subscribe(render)
-}
-
-function renderSeveralTimes (max) {
-  let interval = setInterval(() => { timesRender() }, 30)
-  let times = 0
-  const timesRender = () => {
-    render()
-    times += 1
-    if (times > max) {
-      clearInterval(interval)
-    }
-  }
-  return interval
-}
