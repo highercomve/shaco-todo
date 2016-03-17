@@ -6,6 +6,7 @@
   "scripts": {
     "build": "browserify source/index.js -d -v | uglifyjs -c > bundle.js",
     "watch": "watchify source/index.js -o ./bundle.js -v",
+    "start": "nodemon index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
@@ -30,6 +31,12 @@
         }
       ]
     ]
+  },
+  "dependencies": {
+    "express": "^4.13.4",
+    "gzippo": "^0.2.0",
+    "morgan": "^1.7.0",
+    "nodemon": "^1.9.1"
   },
   "devDependencies": {
     "babel": "^6.5.0",

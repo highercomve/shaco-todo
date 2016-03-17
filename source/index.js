@@ -59,3 +59,5 @@ render()
 
 store.subscribe(render)
 
+console.log(store)
+

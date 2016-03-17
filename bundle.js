@@ -1315,7 +1315,6 @@ function _interopRequireDefault(obj) {
 var DefaultCallbacks = {
   detachedCallback: function detachedCallback() {
     this.onUnMount();
-    console.log('Was detached');
   },
   attributeChangedCallback: function attributeChangedCallback() {
     console.log('Change attibute');
@@ -1350,7 +1349,6 @@ function SetListeners() {
   return {
     attachedCallback: function attachedCallback() {
       try {
-        console.log('Element attach', this);
         this.onMount();
         events.forEach(function (event) {
           this.addEventListener(event.type, function (e) {
@@ -2098,6 +2096,8 @@ var render = function render() {
 render();
 
 _store2.default.subscribe(render);
+
+console.log(_store2.default);
 
 },{"./components/filter_visibility/filter.view":11,"./components/filter_visibility/store":12,"./components/todos/form.view":13,"./components/todos/list.view":14,"./store":19,"shadow-component":3}],18:[function(require,module,exports){
 'use strict';
