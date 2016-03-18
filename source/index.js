@@ -18,6 +18,8 @@ const TodoContainer = Shaco.ComponentFactory({
   <content></content>`,
   view: function() {
     Shaco.createElement('router-manager', null, this.state, {}, function() {
+      // The second parameter is and array that will be past to Shaco.createElement. You don't add the state here
+      // The State will be passed to all the components inside the router-manager
       this.routerIs('/', ['todo-app', null])
       this.routerIs('*', ['div', null, {}, 'Not Found'])
     })
