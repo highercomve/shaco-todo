@@ -1,4 +1,5 @@
 import Shaco from 'shadow-component'
+import { HistoryManager } from 'shaco-router'
 
 const defaultTodoState = {
   text: '',
@@ -73,12 +74,12 @@ const Todo = Shaco.ComponentFactory({
   <content></content>
   </div>
   `,
-  view: function() {
+  view () {
     let { text, clickHandler, removeHandler, completed, child} = this.state
     return (
       <li class={(completed) ? 'ready':'not-ready'}>
         <span class="content" onclick={() => { clickHandler() }}>
-          <a href={`/task/${this.state.id}`}>
+          <a onclick={() => { HistoryManager.push(`/task/${this.state.id}`) }}>
             {text}
           </a>
         </span>

@@ -46,9 +46,10 @@
     "babel-preset-stage-2": "^6.5.0",
     "babelify": "^7.2.0",
     "browserify": "^13.0.0",
-    "jsx-to-shaco": "0.0.1",
+    "jsx-to-shaco": "0.0.3",
     "redux": "^3.3.1",
-    "shadow-component": "^0.2.0",
+    "shaco-router": "0.0.1",
+    "shadow-component": "^0.2.2",
     "uglifyjs": "^2.4.10",
     "watchify": "^3.7.0"
   }

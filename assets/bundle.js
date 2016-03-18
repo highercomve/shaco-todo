@@ -100,26 +100,322 @@ module.exports = function jsxToShaco(jsxObject) {
   var key = jsxObject.attributes.key
   var state = jsxObject.attributes.state
   var options = Object.assign({}, jsxObject.attributes, {key: undefined, state: undefined})
+  var children = (jsxObject.children || []).filter((child) => {
+    return child !== '' && child !== ' '
+  })
   return function () {
-    Shaco.createElement(
+    return Shaco.createElement(
       jsxObject.elementName,
       key,
       state,
       options,
-      jsxObject.children
+      children
     )
   }
 }
 
-},{"shadow-component":3}],3:[function(require,module,exports){
+},{"shadow-component":7}],3:[function(require,module,exports){
 'use strict';
 
 module.exports = require('./source/index.js');
 
-},{"./source/index.js":9}],4:[function(require,module,exports){
+},{"./source/index.js":6}],4:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _shadowComponent = require('shadow-component');
+
+var _shadowComponent2 = _interopRequireDefault(_shadowComponent);
+
+var _history_manager = require('./history_manager');
+
+var _history_manager2 = _interopRequireDefault(_history_manager);
+
+function _interopRequireDefault(obj) {
+  return obj && obj.__esModule ? obj : { default: obj };
+}
+
+function _toConsumableArray(arr) {
+  if (Array.isArray(arr)) {
+    for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) {
+      arr2[i] = arr[i];
+    }return arr2;
+  } else {
+    return Array.from(arr);
+  }
+}
+
+var alreadyRender = false;
+
+var RouterSelector = _shadowComponent2.default.ComponentFactory({
+  elementName: 'route-selector',
+  template: '\n    <content></content>\n  ',
+  state: {},
+  renderComponent: function renderComponent() {
+    this.parentElement.routeIs(this.state.pattern, this.state.params);
+  },
+  view: function view() {
+    this.renderComponent();
+  }
+});
+
+var RouterManager = _shadowComponent2.default.ComponentFactory({
+  elementName: 'route-manager',
+  template: '\n  <content></content>\n  ',
+  onMount: function onMount() {
+    this.watchRoute();
+  },
+  unMount: function unMount() {
+    this.history();
+    window.onpopstate = function () {};
+  },
+
+  routes: [],
+  defaultRoute: {},
+  watchRoute: function watchRoute() {
+    var _this = this;
+
+    this.routeVariable = {};
+    window.onpopstate = function (event) {
+      _this.render(true);
+    };
+    this.history = _history_manager2.default.subscribe(function (e) {
+      _this.render(true);
+    });
+  },
+  getComponentForRoute: function getComponentForRoute() {
+    var selectedRoute = this.routes.filter(function (route) {
+      return _history_manager2.default.match(route.pattern);
+    });
+    if (selectedRoute.length === 0) {
+      selectedRoute = this.defaultRoute;
+    } else {
+      selectedRoute = selectedRoute[0];
+    }
+    return selectedRoute;
+  },
+  routeIs: function routeIs(pattern, paramsArray) {
+    paramsArray = [].concat(_toConsumableArray(paramsArray.slice(0, 2)), [this.state], _toConsumableArray(paramsArray.slice(2)));
+    if (pattern !== '*') {
+      this.routes.push({ pattern: pattern, paramsArray: paramsArray });
+    } else {
+      Object.assign(this.defaultRoute, { pattern: pattern, paramsArray: paramsArray });
+    }
+  },
+  renderChild: function renderChild() {
+    var child = arguments.length <= 0 || arguments[0] === undefined ? this.state.child : arguments[0];
+
+    if (typeof child === 'function') {
+      return child();
+    } else if (Array.isArray(child)) {
+      child.forEach(this.renderChild);
+    } else {
+      return child;
+    }
+  },
+  renderRouteComponent: function renderRouteComponent() {
+    var selectedRoute = this.getComponentForRoute();
+    if (selectedRoute.hasOwnProperty('pattern')) {
+      selectedRoute.paramsArray[2] = Object.assign(this.state, _history_manager2.default.processUrl(selectedRoute.pattern));
+      _shadowComponent2.default.createElement.apply(_shadowComponent2.default, _toConsumableArray(selectedRoute.paramsArray));
+    }
+  },
+
+  view: function view() {
+    this.renderChild();
+    this.renderRouteComponent();
+  }
+});
+
+exports.default = RouterManager;
+
+},{"./history_manager":5,"shadow-component":7}],5:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _extends = Object.assign || function (target) {
+  for (var i = 1; i < arguments.length; i++) {
+    var source = arguments[i];for (var key in source) {
+      if (Object.prototype.hasOwnProperty.call(source, key)) {
+        target[key] = source[key];
+      }
+    }
+  }return target;
+};
+
+var _slicedToArray = function () {
+  function sliceIterator(arr, i) {
+    var _arr = [];var _n = true;var _d = false;var _e = undefined;try {
+      for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) {
+        _arr.push(_s.value);if (i && _arr.length === i) break;
+      }
+    } catch (err) {
+      _d = true;_e = err;
+    } finally {
+      try {
+        if (!_n && _i["return"]) _i["return"]();
+      } finally {
+        if (_d) throw _e;
+      }
+    }return _arr;
+  }return function (arr, i) {
+    if (Array.isArray(arr)) {
+      return arr;
+    } else if (Symbol.iterator in Object(arr)) {
+      return sliceIterator(arr, i);
+    } else {
+      throw new TypeError("Invalid attempt to destructure non-iterable instance");
+    }
+  };
+}();
+
+var historyManager = history;
+var listeners = [];
+
+// Private Functions
+function ifNotEmpty(variable) {
+  return typeof variable !== 'undefined' && variable !== null && variable !== '' && typeof variable === 'string';
+}
+
+function extractQuery(url) {
+  return url.slice(1).split('&').reduce(function (result, query, index) {
+    var _query$split = query.split('=');
+
+    var _query$split2 = _slicedToArray(_query$split, 2);
+
+    var variable = _query$split2[0];
+    var value = _query$split2[1];
+
+    if (ifNotEmpty(variable)) {
+      result[variable] = value;
+    }
+    return result;
+  }, {});
+}
+
+function extractVariables(url, pattern) {
+  var regPattern = getPattern(pattern);
+  var matchedUrl = url.match(regPattern) || [];
+  var patternVariables = getVariables(pattern);
+
+  return matchedUrl.slice(1).reduce(function (result, match, index) {
+    result[patternVariables[index]] = match;
+    return result;
+  }, {});
+}
+
+function getPattern(patternString) {
+  var pattern = patternString.replace(/\:[a-zA-z0-9]*/g, '([a-zA-Z0-9]*)') + '(?=\\?|$)';
+  return new RegExp(pattern, 'i');
+}
+
+function getVariables(pattern) {
+  var matches = pattern.match(/\:([a-zA-Z0-9]*)/g) || [];
+  return matches.map(function (match) {
+    return match.replace(/\:/, '');
+  });
+}
+
+// Public Functions
+function match(pattern) {
+  var url = arguments.length <= 1 || arguments[1] === undefined ? window.location : arguments[1];
+
+  var result = url.href.match(getPattern(pattern));
+  return result !== null;
+}
+
+function processUrl(pattern) {
+  var url = arguments.length <= 1 || arguments[1] === undefined ? window.location : arguments[1];
+
+  return _extends({}, extractQuery(url.search), extractVariables(url.href, pattern));
+}
+
+function callListeners() {
+  listeners.map(function (listener) {
+    listener();
+  });
+}
+
+function push(url) {
+  var state = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
+  var title = arguments.length <= 2 || arguments[2] === undefined ? '' : arguments[2];
+
+  historyManager.pushState(state, title, url);
+  callListeners();
+}
+
+function go() {
+  var n = arguments.length <= 0 || arguments[0] === undefined ? -1 : arguments[0];
+
+  historyManager.go(n);
+  callListeners();
+}
+
+function back() {
+  historyManager.back();
+  callListeners();
+}
+
+function forward() {
+  historyManager.forward();
+  callListeners();
+}
+
+function subscribe(listener) {
+  listeners.push(listener);
+
+  return function () {
+    listeners = listeners.filter(function (f) {
+      return f !== listener;
+    });
+  };
+}
+
+exports.default = {
+  go: go,
+  push: push,
+  back: back,
+  forward: forward,
+  processUrl: processUrl,
+  subscribe: subscribe,
+  match: match
+};
+
+},{}],6:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.HistoryManager = exports.RouterManager = undefined;
+
+var _component = require('./component');
+
+var _component2 = _interopRequireDefault(_component);
+
+var _history_manager = require('./history_manager');
+
+var _history_manager2 = _interopRequireDefault(_history_manager);
+
+function _interopRequireDefault(obj) {
+  return obj && obj.__esModule ? obj : { default: obj };
+}
+
+exports.RouterManager = _component2.default;
+exports.HistoryManager = _history_manager2.default;
+
+},{"./component":4,"./history_manager":5}],7:[function(require,module,exports){
+arguments[4][3][0].apply(exports,arguments)
+},{"./source/index.js":13,"dup":3}],8:[function(require,module,exports){
 /*! (C) WebReflection Mit Style License */
 (function(e,t,n,r){"use strict";function rt(e,t){for(var n=0,r=e.length;n<r;n++)vt(e[n],t)}function it(e){for(var t=0,n=e.length,r;t<n;t++)r=e[t],nt(r,b[ot(r)])}function st(e){return function(t){j(t)&&(vt(t,e),rt(t.querySelectorAll(w),e))}}function ot(e){var t=e.getAttribute("is"),n=e.nodeName.toUpperCase(),r=S.call(y,t?v+t.toUpperCase():d+n);return t&&-1<r&&!ut(n,t)?-1:r}function ut(e,t){return-1<w.indexOf(e+'[is="'+t+'"]')}function at(e){var t=e.currentTarget,n=e.attrChange,r=e.attrName,i=e.target;Q&&(!i||i===t)&&t.attributeChangedCallback&&r!=="style"&&e.prevValue!==e.newValue&&t.attributeChangedCallback(r,n===e[a]?null:e.prevValue,n===e[l]?null:e.newValue)}function ft(e){var t=st(e);return function(e){X.push(t,e.target)}}function lt(e){K&&(K=!1,e.currentTarget.removeEventListener(h,lt)),rt((e.target||t).querySelectorAll(w),e.detail===o?o:s),B&&pt()}function ct(e,t){var n=this;q.call(n,e,t),G.call(n,{target:n})}function ht(e,t){D(e,t),et?et.observe(e,z):(J&&(e.setAttribute=ct,e[i]=Z(e),e.addEventListener(p,G)),e.addEventListener(c,at)),e.createdCallback&&Q&&(e.created=!0,e.createdCallback(),e.created=!1)}function pt(){for(var e,t=0,n=F.length;t<n;t++)e=F[t],E.contains(e)||(n--,F.splice(t--,1),vt(e,o))}function dt(e){throw new Error("A "+e+" type is already registered")}function vt(e,t){var n,r=ot(e);-1<r&&(tt(e,b[r]),r=0,t===s&&!e[s]?(e[o]=!1,e[s]=!0,r=1,B&&S.call(F,e)<0&&F.push(e)):t===o&&!e[o]&&(e[s]=!1,e[o]=!0,r=1),r&&(n=e[t+"Callback"])&&n.call(e))}if(r in t)return;var i="__"+r+(Math.random()*1e5>>0),s="attached",o="detached",u="extends",a="ADDITION",f="MODIFICATION",l="REMOVAL",c="DOMAttrModified",h="DOMContentLoaded",p="DOMSubtreeModified",d="<",v="=",m=/^[A-Z][A-Z0-9]*(?:-[A-Z0-9]+)+$/,g=["ANNOTATION-XML","COLOR-PROFILE","FONT-FACE","FONT-FACE-SRC","FONT-FACE-URI","FONT-FACE-FORMAT","FONT-FACE-NAME","MISSING-GLYPH"],y=[],b=[],w="",E=t.documentElement,S=y.indexOf||function(e){for(var t=this.length;t--&&this[t]!==e;);return t},x=n.prototype,T=x.hasOwnProperty,N=x.isPrototypeOf,C=n.defineProperty,k=n.getOwnPropertyDescriptor,L=n.getOwnPropertyNames,A=n.getPrototypeOf,O=n.setPrototypeOf,M=!!n.__proto__,_=n.create||function mt(e){return e?(mt.prototype=e,new mt):this},D=O||(M?function(e,t){return e.__proto__=t,e}:L&&k?function(){function e(e,t){for(var n,r=L(t),i=0,s=r.length;i<s;i++)n=r[i],T.call(e,n)||C(e,n,k(t,n))}return function(t,n){do e(t,n);while((n=A(n))&&!N.call(n,t));return t}}():function(e,t){for(var n in t)e[n]=t[n];return e}),P=e.MutationObserver||e.WebKitMutationObserver,H=(e.HTMLElement||e.Element||e.Node).prototype,B=!N.call(H,E),j=B?function(e){return e.nodeType===1}:function(e){return N.call(H,e)},F=B&&[],I=H.cloneNode,q=H.setAttribute,R=H.removeAttribute,U=t.createElement,z=P&&{attributes:!0,characterData:!0,attributeOldValue:!0},W=P||function(e){J=!1,E.removeEventListener(c,W)},X,V=e.requestAnimationFrame||e.webkitRequestAnimationFrame||e.mozRequestAnimationFrame||e.msRequestAnimationFrame||function(e){setTimeout(e,10)},$=!1,J=!0,K=!0,Q=!0,G,Y,Z,et,tt,nt;O||M?(tt=function(e,t){N.call(t,e)||ht(e,t)},nt=ht):(tt=function(e,t){e[i]||(e[i]=n(!0),ht(e,t))},nt=tt),B?(J=!1,function(){var e=k(H,"addEventListener"),t=e.value,n=function(e){var t=new CustomEvent(c,{bubbles:!0});t.attrName=e,t.prevValue=this.getAttribute(e),t.newValue=null,t[l]=t.attrChange=2,R.call(this,e),this.dispatchEvent(t)},r=function(e,t){var n=this.hasAttribute(e),r=n&&this.getAttribute(e),i=new CustomEvent(c,{bubbles:!0});q.call(this,e,t),i.attrName=e,i.prevValue=n?r:null,i.newValue=t,n?i[f]=i.attrChange=1:i[a]=i.attrChange=0,this.dispatchEvent(i)},s=function(e){var t=e.currentTarget,n=t[i],r=e.propertyName,s;n.hasOwnProperty(r)&&(n=n[r],s=new CustomEvent(c,{bubbles:!0}),s.attrName=n.name,s.prevValue=n.value||null,s.newValue=n.value=t[r]||null,s.prevValue==null?s[a]=s.attrChange=0:s[f]=s.attrChange=1,t.dispatchEvent(s))};e.value=function(e,o,u){e===c&&this.attributeChangedCallback&&this.setAttribute!==r&&(this[i]={className:{name:"class",value:this.className}},this.setAttribute=r,this.removeAttribute=n,t.call(this,"propertychange",s)),t.call(this,e,o,u)},C(H,"addEventListener",e)}()):P||(E.addEventListener(c,W),E.setAttribute(i,1),E.removeAttribute(i),J&&(G=function(e){var t=this,n,r,s;if(t===e.target){n=t[i],t[i]=r=Z(t);for(s in r){if(!(s in n))return Y(0,t,s,n[s],r[s],a);if(r[s]!==n[s])return Y(1,t,s,n[s],r[s],f)}for(s in n)if(!(s in r))return Y(2,t,s,n[s],r[s],l)}},Y=function(e,t,n,r,i,s){var o={attrChange:e,currentTarget:t,attrName:n,prevValue:r,newValue:i};o[s]=e,at(o)},Z=function(e){for(var t,n,r={},i=e.attributes,s=0,o=i.length;s<o;s++)t=i[s],n=t.name,n!=="setAttribute"&&(r[n]=t.value);return r})),t[r]=function(n,r){c=n.toUpperCase(),$||($=!0,P?(et=function(e,t){function n(e,t){for(var n=0,r=e.length;n<r;t(e[n++]));}return new P(function(r){for(var i,s,o,u=0,a=r.length;u<a;u++)i=r[u],i.type==="childList"?(n(i.addedNodes,e),n(i.removedNodes,t)):(s=i.target,Q&&s.attributeChangedCallback&&i.attributeName!=="style"&&(o=s.getAttribute(i.attributeName),o!==i.oldValue&&s.attributeChangedCallback(i.attributeName,i.oldValue,o)))})}(st(s),st(o)),et.observe(t,{childList:!0,subtree:!0})):(X=[],V(function E(){while(X.length)X.shift().call(null,X.shift());V(E)}),t.addEventListener("DOMNodeInserted",ft(s)),t.addEventListener("DOMNodeRemoved",ft(o))),t.addEventListener(h,lt),t.addEventListener("readystatechange",lt),t.createElement=function(e,n){var r=U.apply(t,arguments),i=""+e,s=S.call(y,(n?v:d)+(n||i).toUpperCase()),o=-1<s;return n&&(r.setAttribute("is",n=n.toLowerCase()),o&&(o=ut(i.toUpperCase(),n))),Q=!t.createElement.innerHTMLHelper,o&&nt(r,b[s]),r},H.cloneNode=function(e){var t=I.call(this,!!e),n=ot(t);return-1<n&&nt(t,b[n]),e&&it(t.querySelectorAll(w)),t}),-2<S.call(y,v+c)+S.call(y,d+c)&&dt(n);if(!m.test(c)||-1<S.call(g,c))throw new Error("The type "+n+" is invalid");var i=function(){return f?t.createElement(l,c):t.createElement(l)},a=r||x,f=T.call(a,u),l=f?r[u].toUpperCase():c,c,p;return f&&-1<S.call(y,d+l)&&dt(l),p=y.push((f?v:d)+c)-1,w=w.concat(w.length?",":"",f?l+'[is="'+n.toLowerCase()+'"]':l),i.prototype=b[p]=T.call(a,"prototype")?a.prototype:_(H),rt(t.querySelectorAll(w),s),i}})(window,document,Object,"registerElement");
-},{}],5:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 (function (process){
 
 /**
@@ -1297,7 +1593,7 @@ exports.text = function (value, var_args) {
 };
 
 }).call(this,require('_process'))
-},{"_process":1}],6:[function(require,module,exports){
+},{"_process":1}],10:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1384,7 +1680,7 @@ function Builder(tagName, options) {
 
 exports.default = Builder;
 
-},{"./shadowdom-shim":10}],7:[function(require,module,exports){
+},{"./shadowdom-shim":14}],11:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1413,16 +1709,16 @@ if (!Array.isArray) {
 
 function validateRequiredFields(options) {
   if (!options.hasOwnProperty('template')) {
-    throw _exceptions2.default.WITHOUT_TEMPLATE;
+    throw _exceptions2.default.WITHOUT_TEMPLATE();
   }
   if (!options.hasOwnProperty('view')) {
-    throw _exceptions2.default.WITHOUT_VIEW;
+    throw _exceptions2.default.WITHOUT_VIEW();
   }
   if (!options.hasOwnProperty('elementName')) {
-    throw _exceptions2.default.WITHOUT_TAGNAME;
+    throw _exceptions2.default.WITHOUT_TAGNAME();
   }
   if (typeof options.view != "string" && typeof options.view != "function") {
-    throw _exceptions2.default.VIEW_MUST_BE_STRING_OR_FUNTION;
+    throw _exceptions2.default.VIEW_MUST_BE_STRING_OR_FUNTION();
   }
 }
 
@@ -1472,34 +1768,30 @@ function TagFactory() {
 
 exports.default = TagFactory;
 
-},{"./builder":6,"./exceptions":8,"incremental-dom":5}],8:[function(require,module,exports){
+},{"./builder":10,"./exceptions":12,"incremental-dom":9}],12:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
 var ComponentExceptions = {
-  WITHOUT_TEMPLATE: {
-    message: 'The new component need a Template',
-    name: 'ComponentWithOutTemplate'
+  WITHOUT_TEMPLATE: function WITHOUT_TEMPLATE() {
+    return new Error('ComponentWithOutTemplate, The new component need a Template');
   },
-  WITHOUT_VIEW: {
-    message: 'The new component must have a view rendering',
-    name: 'ComponentWithOutView'
+  WITHOUT_VIEW: function WITHOUT_VIEW() {
+    return new Error('ComponentWithOutView, The new component must have a view rendering');
   },
-  WITHOUT_TAGNAME: {
-    message: "You can't create a component without the tagName, you must pass that to ComponentFactory",
-    name: 'ComponentWithPutTagName'
+  WITHOUT_TAGNAME: function WITHOUT_TAGNAME() {
+    new Error('ComponentWithPutTagName, You can\'t create a component without the tagName, you must pass that to ComponentFactory');
   },
-  VIEW_MUST_BE_STRING_OR_FUNTION: {
-    message: "The attribute view must be a string or a funtion.",
-    name: "ComponentViewMustBeAStringOrFunction"
+  VIEW_MUST_BE_STRING_OR_FUNTION: function VIEW_MUST_BE_STRING_OR_FUNTION() {
+    new Error("ComponentViewMustBeAStringOrFunction The attribute view must be a string or a funtion.");
   }
 };
 
 exports.default = ComponentExceptions;
 
-},{}],9:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1579,7 +1871,6 @@ function renderDOM(component, tag) {
     renderComponent(component, tag, state);
   } else {
     interval = setInterval(function () {
-      console.log('inside interval');
       renderComponent(component, tag, state);
       tries += 1;
       if (tries > 5) {
@@ -1604,7 +1895,7 @@ var Shaco = {
 
 exports.default = Shaco;
 
-},{"./create":7,"document-register-element":4,"incremental-dom":5}],10:[function(require,module,exports){
+},{"./create":11,"document-register-element":8,"incremental-dom":9}],14:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1645,7 +1936,7 @@ exports.default = {
   writeStyle: writeStyle
 };
 
-},{}],11:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1714,7 +2005,7 @@ var FilterMenu = _shadowComponent2.default.ComponentFactory({
 
 exports.default = FilterMenu;
 
-},{"jsx-to-shaco":2,"shadow-component":3}],12:[function(require,module,exports){
+},{"jsx-to-shaco":2,"shadow-component":7}],16:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -1760,7 +2051,7 @@ var filters = exports.filters = [{
   text: "Completed task"
 }];
 
-},{}],13:[function(require,module,exports){
+},{}],17:[function(require,module,exports){
 'use strict';
 
 var _shadowComponent = require('shadow-component');
@@ -1826,235 +2117,7 @@ var TodoApp = _shadowComponent2.default.ComponentFactory({
   }
 });
 
-},{"../../store":23,"../filter_visibility/filter.view":11,"../filter_visibility/store":12,"../todos/form.view":17,"../todos/list.view":18,"shadow-component":3}],14:[function(require,module,exports){
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var _shadowComponent = require('shadow-component');
-
-var _shadowComponent2 = _interopRequireDefault(_shadowComponent);
-
-var _history_manager = require('./history_manager');
-
-var _history_manager2 = _interopRequireDefault(_history_manager);
-
-var _store = require('../../store');
-
-var _store2 = _interopRequireDefault(_store);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
-
-var alreadyRender = false;
-
-var Router = _shadowComponent2.default.ComponentFactory({
-  elementName: 'router-manager',
-  template: '\n  <content></content>\n  ',
-  onMount: function onMount() {
-    console.log('This is mount');
-    this.watchRoute();
-  },
-
-  state: {},
-  routes: [],
-  defaultRoute: {},
-  unMount: function unMount() {
-    this.history();
-    window.onpopstate = function () {};
-  },
-  watchRoute: function watchRoute() {
-    var _this = this;
-
-    this.routeVariable = {};
-    window.onpopstate = function (event) {
-      _this.render(true);
-    };
-    this.history = _history_manager2.default.subscribe(function (e) {
-      _this.render(true);
-    });
-  },
-  getComponentForRoute: function getComponentForRoute() {
-    var selectedRoute = this.routes.filter(function (route) {
-      return _history_manager2.default.match(route.pattern);
-    });
-    if (selectedRoute.length === 0) {
-      selectedRoute = this.defaultRoute;
-    } else {
-      selectedRoute = selectedRoute[0];
-    }
-    return selectedRoute;
-  },
-  routerIs: function routerIs(pattern, paramsArray) {
-    paramsArray = [].concat(_toConsumableArray(paramsArray.slice(0, 2)), [this.state], _toConsumableArray(paramsArray.slice(2)));
-    if (pattern !== '*') {
-      this.routes.push({ pattern: pattern, paramsArray: paramsArray });
-    } else {
-      Object.assign(this.defaultRoute, { pattern: pattern, paramsArray: paramsArray });
-    }
-  },
-  renderRouteComponent: function renderRouteComponent() {
-    var selectedRoute = this.getComponentForRoute();
-    selectedRoute.paramsArray[2] = this.state;
-    _shadowComponent2.default.createElement.apply(_shadowComponent2.default, _toConsumableArray(selectedRoute.paramsArray));
-  },
-  view: function view() {
-    var result = this.state.child.bind(this)();
-    if (typeof result === 'function') {
-      var result = result.bind(this)();
-    }
-    this.renderRouteComponent();
-  }
-});
-
-exports.default = Router;
-
-},{"../../store":23,"./history_manager":15,"shadow-component":3}],15:[function(require,module,exports){
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
-
-var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
-
-var historyManager = history;
-var listeners = [];
-
-// Private Functions
-function ifNotEmpty(variable) {
-  return typeof variable !== 'undefined' && variable !== null && variable !== '' && typeof variable === 'string';
-}
-
-function extractQuery(url) {
-  return url.slice(1).split('&').reduce(function (result, query, index) {
-    var _query$split = query.split('=');
-
-    var _query$split2 = _slicedToArray(_query$split, 2);
-
-    var variable = _query$split2[0];
-    var value = _query$split2[1];
-
-    if (ifNotEmpty(variable)) {
-      result[variable] = value;
-    }
-    return result;
-  }, {});
-}
-
-function extractVariables(url, pattern) {
-  var regPattern = getPattern(pattern);
-  var matchedUrl = url.match(regPattern) || [];
-  var patternVariables = getVariables(pattern);
-
-  return matchedUrl.slice(1).reduce(function (result, match, index) {
-    result[patternVariables[index]] = match;
-    return result;
-  }, {});
-}
-
-function getPattern(patternString) {
-  var pattern = patternString.replace(/\:[a-zA-z0-9]*/g, '([a-zA-Z0-9]*)') + '(?=\\?|$)';
-  return new RegExp(pattern, 'i');
-}
-
-function getVariables(pattern) {
-  var matches = pattern.match(/\:([a-zA-Z0-9]*)/g) || [];
-  return matches.map(function (match) {
-    return match.replace(/\:/, '');
-  });
-}
-
-// Public Functions
-function match(pattern) {
-  var url = arguments.length <= 1 || arguments[1] === undefined ? window.location : arguments[1];
-
-  var result = url.href.match(getPattern(pattern));
-  return result !== null;
-}
-
-function processUrl(pattern) {
-  var url = arguments.length <= 1 || arguments[1] === undefined ? window.location : arguments[1];
-
-  return _extends({}, extractQuery(url.search), extractVariables(url.href, pattern));
-}
-
-function callListeners() {
-  listeners.map(function (listener) {
-    listener();
-  });
-}
-
-function push(url) {
-  var state = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
-  var title = arguments.length <= 2 || arguments[2] === undefined ? '' : arguments[2];
-
-  historyManager.pushState(state, title, url);
-  callListeners();
-}
-
-function go() {
-  var n = arguments.length <= 0 || arguments[0] === undefined ? -1 : arguments[0];
-
-  historyManager.go(n);
-  callListeners();
-}
-
-function back() {
-  historyManager.back();
-  callListeners();
-}
-
-function forward() {
-  historyManager.forward();
-  callListeners();
-}
-
-function subscribe(listener) {
-  listeners.push(listener);
-
-  return function () {
-    listeners = listeners.filter(function (f) {
-      return f !== listener;
-    });
-  };
-}
-
-exports.default = {
-  go: go,
-  push: push,
-  back: back,
-  forward: forward,
-  processUrl: processUrl,
-  subscribe: subscribe,
-  match: match
-};
-
-},{}],16:[function(require,module,exports){
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = router;
-function router() {
-  var state = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
-  var action = arguments[1];
-
-  switch (action.type) {
-    case "CHANGE_ROUTE":
-      return action.route;
-    default:
-      return state;
-  }
-}
-
-},{}],17:[function(require,module,exports){
+},{"../../store":24,"../filter_visibility/filter.view":15,"../filter_visibility/store":16,"../todos/form.view":18,"../todos/list.view":19,"shadow-component":7}],18:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -2115,7 +2178,7 @@ var TodoForm = _shadowComponent2.default.ComponentFactory({
 
 exports.default = TodoForm;
 
-},{"shadow-component":3}],18:[function(require,module,exports){
+},{"shadow-component":7}],19:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -2187,7 +2250,7 @@ var TodoList = _shadowComponent2.default.ComponentFactory({
 
 exports.default = TodoList;
 
-},{"../filter_visibility/store":12,"./show.view":19,"jsx-to-shaco":2,"shadow-component":3}],19:[function(require,module,exports){
+},{"../filter_visibility/store":16,"./show.view":20,"jsx-to-shaco":2,"shadow-component":7}],20:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -2201,6 +2264,8 @@ var _jsxToShaco2 = _interopRequireDefault(_jsxToShaco);
 var _shadowComponent = require('shadow-component');
 
 var _shadowComponent2 = _interopRequireDefault(_shadowComponent);
+
+var _shacoRouter = require('shaco-router');
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -2216,6 +2281,8 @@ var Todo = _shadowComponent2.default.ComponentFactory({
   state: defaultTodoState,
   template: '\n  <style>\n    ::content li .content,\n      ::content li .todo-remove {\n  float: left;\n  display: block;\n  }\n\n    ::content li .content {\n  width: 92%;\n  }\n\n    ::content li .todo-remove {\n  background: none;\n  color: #e74c3c;\n  border: none;\n  box-shadow: none;\n  font-size: 2.2em;\n  margin-top: -0.5em;\n  line-height: 0.8em;\n  width: 8%;\n  float: right;\n  position: relative;\n  top: 0.2em;\n  }\n\n    ::content .ready {\n  color: #999;\n  position: relative;\n  }\n\n    ::content .ready:before {\n  position: absolute;\n  top: 48%;\n  left: %5;\n  width: 80%;\n  display: block;\n  border-bottom: 1px solid #999;\n  content: "";\n  }\n\n    ::content .not-ready {\n  text-decoration: none;\n  }\n\n    ::content li {\n  background-color: #F3F3F3;\n  padding: 1em;\n  border-bottom: 1px solid #CCC;\n  border-top: 1px solid #FFF;\n  position: relative;\n  }\n    ::content li:before,\n      ::content li:after {\n  content: "";\n  display: block;\n  clear: both;\n  }\n  </style>\n  <div class="todo-item">\n  <content></content>\n  </div>\n  ',
   view: function view() {
+    var _this = this;
+
     var _state = this.state;
     var text = _state.text;
     var clickHandler = _state.clickHandler;
@@ -2239,7 +2306,9 @@ var Todo = _shadowComponent2.default.ComponentFactory({
         children: [' ', (0, _jsxToShaco2.default)({
           elementName: 'a',
           attributes: {
-            href: '/task/' + this.state.id
+            onclick: function onclick() {
+              _shacoRouter.HistoryManager.push('/task/' + _this.state.id);
+            }
           },
           children: [' ', text, ' ']
         }), ' ']
@@ -2259,7 +2328,7 @@ var Todo = _shadowComponent2.default.ComponentFactory({
 
 exports.default = Todo;
 
-},{"jsx-to-shaco":2,"shadow-component":3}],20:[function(require,module,exports){
+},{"jsx-to-shaco":2,"shaco-router":3,"shadow-component":7}],21:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -2323,20 +2392,22 @@ function todos() {
 
 exports.default = todos;
 
-},{}],21:[function(require,module,exports){
+},{}],22:[function(require,module,exports){
 'use strict';
+
+var _jsxToShaco = require('jsx-to-shaco');
+
+var _jsxToShaco2 = _interopRequireDefault(_jsxToShaco);
 
 var _shadowComponent = require('shadow-component');
 
 var _shadowComponent2 = _interopRequireDefault(_shadowComponent);
 
+var _shacoRouter = require('shaco-router');
+
 var _store = require('./store');
 
 var _store2 = _interopRequireDefault(_store);
-
-var _component = require('./components/router/component');
-
-var _component2 = _interopRequireDefault(_component);
 
 var _view = require('./components/main/view');
 
@@ -2349,9 +2420,44 @@ var TodoContainer = _shadowComponent2.default.ComponentFactory({
   state: _store2.default.getState(),
   template: '\n  <style>\n    :host {\n  font-family: Helvetica;\n  max-width: 500px;\n  margin: 0 auto;\n  display: block;\n  }\n  </style>\n  <content></content>',
   view: function view() {
-    _shadowComponent2.default.createElement('router-manager', null, this.state, {}, function () {
-      this.routerIs('/', ['todo-app', null]);
-      this.routerIs('*', ['div', null, {}, 'Not Found']);
+    /*
+     * RouteManager: will allow render one component depending the URL in the browser.
+     *
+     * the routeIs function receive to params:
+     * Fist the pattern to match the URL:
+     *    This could be something like:
+     *    "/" -> the index
+     *    "/tasks"
+     *    "/tasks/:id"
+     *    "*" -> the rest
+     * The second parameter is and array that will be past to Shaco.createElement. You don't add the state here
+     * The State will be passed to all the components inside the router-manager
+     * You can use router-manager using JSX like before or using javascript functions, like this:
+     *
+     */
+    // Shaco.createElement('route-manager', null, this.state, {}, () => {
+    //   Shaco.createElement('route-selector', null, { pattern: '/', params: ['todo-app', null]} )
+    //   Shaco.createElement('route-selector', null, { pattern: '.*', params: ['div', null, {}, "Not found"]} )
+    // })
+
+    return (0, _jsxToShaco2.default)({
+      elementName: 'route-manager',
+      attributes: {
+        state: this.state
+      },
+      children: [' ', (0, _jsxToShaco2.default)({
+        elementName: 'route-selector',
+        attributes: {
+          state: { pattern: '/', params: ['todo-app', null] }
+        },
+        children: []
+      }), ' ', (0, _jsxToShaco2.default)({
+        elementName: 'route-selector',
+        attributes: {
+          state: { pattern: '.*', params: ['div', null, {}, "Not found"] }
+        },
+        children: []
+      }), ' ']
     });
   }
 });
@@ -2370,7 +2476,7 @@ function init() {
 
 window.addEventListener ? addEventListener("load", init, false) : window.attachEvent ? attachEvent("onload", init) : onload = init;
 
-},{"./components/main/view":13,"./components/router/component":14,"./store":23,"shadow-component":3}],22:[function(require,module,exports){
+},{"./components/main/view":17,"./store":24,"jsx-to-shaco":2,"shaco-router":3,"shadow-component":7}],23:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -2461,7 +2567,7 @@ exports.default = {
   createStore: createStore
 };
 
-},{}],23:[function(require,module,exports){
+},{}],24:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -2480,10 +2586,6 @@ var _store3 = require('./components/filter_visibility/store');
 
 var _store4 = _interopRequireDefault(_store3);
 
-var _store5 = require('./components/router/store');
-
-var _store6 = _interopRequireDefault(_store5);
-
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var combineReducers = _state_manager2.default.combineReducers;
@@ -2492,12 +2594,11 @@ var createStore = _state_manager2.default.createStore;
 
 var reducer = combineReducers({
   todos: _store2.default,
-  visibilityFilter: _store4.default,
-  router: _store6.default
+  visibilityFilter: _store4.default
 });
 
 var store = createStore(reducer);
 
 exports.default = store;
 
-},{"./components/filter_visibility/store":12,"./components/router/store":16,"./components/todos/store":20,"./state_manager":22}]},{},[21]);
+},{"./components/filter_visibility/store":16,"./components/todos/store":21,"./state_manager":23}]},{},[22]);
