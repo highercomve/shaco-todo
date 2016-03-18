@@ -1763,6 +1763,300 @@ var filters = exports.filters = [{
 },{}],13:[function(require,module,exports){
 'use strict';
 
+var _shadowComponent = require('shadow-component');
+
+var _shadowComponent2 = _interopRequireDefault(_shadowComponent);
+
+var _store = require('../../store');
+
+var _store2 = _interopRequireDefault(_store);
+
+var _store3 = require('../filter_visibility/store');
+
+var _list = require('../todos/list.view');
+
+var _list2 = _interopRequireDefault(_list);
+
+var _form = require('../todos/form.view');
+
+var _form2 = _interopRequireDefault(_form);
+
+var _filter = require('../filter_visibility/filter.view');
+
+var _filter2 = _interopRequireDefault(_filter);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var TodoApp = _shadowComponent2.default.ComponentFactory({
+  elementName: 'todo-app',
+  state: _store2.default.getState(),
+  template: '\n  <style>\n    :host {\n  font-family: Helvetica;\n  max-width: 500px;\n  margin: 0 auto;\n  display: block;\n  }\n  </style>\n  <content></content>',
+  statePlusHandlers: function statePlusHandlers() {
+    return Object.assign({}, this.state, {
+      toggleHandler: function toggleHandler(index) {
+        _store2.default.dispatch({ type: "TOGGLE_TODO", index: index });
+      },
+      removeHandler: function removeHandler(index) {
+        _store2.default.dispatch({ type: "REMOVE_TODO", index: index });
+      }
+    });
+  },
+  submitHandlerFactory: function submitHandlerFactory() {
+    return {
+      submitHandler: function submitHandler(value) {
+        _store2.default.dispatch({ type: "ADD_TODO", text: value });
+      }
+    };
+  },
+  filterMenuState: function filterMenuState() {
+    return {
+      visibilityFilter: this.state.visibilityFilter,
+      filterHandler: function filterHandler(filter) {
+        _store2.default.dispatch({ type: "SET_VISIBILITY_FILTER", filter: filter });
+      },
+
+      filters: _store3.filters
+    };
+  },
+
+  view: function view() {
+    _shadowComponent2.default.createElement('todo-form', null, this.submitHandlerFactory());
+    _shadowComponent2.default.createElement('todo-list', null, this.statePlusHandlers());
+    _shadowComponent2.default.createElement('filter-menu', null, this.filterMenuState());
+  }
+});
+
+},{"../../store":23,"../filter_visibility/filter.view":11,"../filter_visibility/store":12,"../todos/form.view":17,"../todos/list.view":18,"shadow-component":3}],14:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _shadowComponent = require('shadow-component');
+
+var _shadowComponent2 = _interopRequireDefault(_shadowComponent);
+
+var _history_manager = require('./history_manager');
+
+var _history_manager2 = _interopRequireDefault(_history_manager);
+
+var _store = require('../../store');
+
+var _store2 = _interopRequireDefault(_store);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
+var alreadyRender = false;
+
+var Router = _shadowComponent2.default.ComponentFactory({
+  elementName: 'router-manager',
+  template: '\n  <content></content>\n  ',
+  onMount: function onMount() {
+    console.log('This is mount');
+    this.watchRoute();
+  },
+
+  state: {},
+  routes: [],
+  defaultRoute: {},
+  unMount: function unMount() {
+    this.history();
+    window.onpopstate = function () {};
+  },
+  watchRoute: function watchRoute() {
+    var _this = this;
+
+    this.routeVariable = {};
+    window.onpopstate = function (event) {
+      _this.render(true);
+    };
+    this.history = _history_manager2.default.subscribe(function (e) {
+      _this.render(true);
+    });
+  },
+  getComponentForRoute: function getComponentForRoute() {
+    var selectedRoute = this.routes.filter(function (route) {
+      return _history_manager2.default.match(route.pattern);
+    });
+    if (selectedRoute.length === 0) {
+      selectedRoute = this.defaultRoute;
+    } else {
+      selectedRoute = selectedRoute[0];
+    }
+    return selectedRoute;
+  },
+  routerIs: function routerIs(pattern, paramsArray) {
+    paramsArray = [].concat(_toConsumableArray(paramsArray.slice(0, 2)), [this.state], _toConsumableArray(paramsArray.slice(2)));
+    if (pattern !== '*') {
+      this.routes.push({ pattern: pattern, paramsArray: paramsArray });
+    } else {
+      Object.assign(this.defaultRoute, { pattern: pattern, paramsArray: paramsArray });
+    }
+  },
+  renderRouteComponent: function renderRouteComponent() {
+    var selectedRoute = this.getComponentForRoute();
+    selectedRoute.paramsArray[2] = this.state;
+    _shadowComponent2.default.createElement.apply(_shadowComponent2.default, _toConsumableArray(selectedRoute.paramsArray));
+  },
+  view: function view() {
+    var result = this.state.child.bind(this)();
+    if (typeof result === 'function') {
+      var result = result.bind(this)();
+    }
+    this.renderRouteComponent();
+  }
+});
+
+exports.default = Router;
+
+},{"../../store":23,"./history_manager":15,"shadow-component":3}],15:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
+var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
+
+var historyManager = history;
+var listeners = [];
+
+// Private Functions
+function ifNotEmpty(variable) {
+  return typeof variable !== 'undefined' && variable !== null && variable !== '' && typeof variable === 'string';
+}
+
+function extractQuery(url) {
+  return url.slice(1).split('&').reduce(function (result, query, index) {
+    var _query$split = query.split('=');
+
+    var _query$split2 = _slicedToArray(_query$split, 2);
+
+    var variable = _query$split2[0];
+    var value = _query$split2[1];
+
+    if (ifNotEmpty(variable)) {
+      result[variable] = value;
+    }
+    return result;
+  }, {});
+}
+
+function extractVariables(url, pattern) {
+  var regPattern = getPattern(pattern);
+  var matchedUrl = url.match(regPattern) || [];
+  var patternVariables = getVariables(pattern);
+
+  return matchedUrl.slice(1).reduce(function (result, match, index) {
+    result[patternVariables[index]] = match;
+    return result;
+  }, {});
+}
+
+function getPattern(patternString) {
+  var pattern = patternString.replace(/\:[a-zA-z0-9]*/g, '([a-zA-Z0-9]*)') + '(?=\\?|$)';
+  return new RegExp(pattern, 'i');
+}
+
+function getVariables(pattern) {
+  var matches = pattern.match(/\:([a-zA-Z0-9]*)/g) || [];
+  return matches.map(function (match) {
+    return match.replace(/\:/, '');
+  });
+}
+
+// Public Functions
+function match(pattern) {
+  var url = arguments.length <= 1 || arguments[1] === undefined ? window.location : arguments[1];
+
+  var result = url.href.match(getPattern(pattern));
+  return result !== null;
+}
+
+function processUrl(pattern) {
+  var url = arguments.length <= 1 || arguments[1] === undefined ? window.location : arguments[1];
+
+  return _extends({}, extractQuery(url.search), extractVariables(url.href, pattern));
+}
+
+function callListeners() {
+  listeners.map(function (listener) {
+    listener();
+  });
+}
+
+function push(url) {
+  var state = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
+  var title = arguments.length <= 2 || arguments[2] === undefined ? '' : arguments[2];
+
+  historyManager.pushState(state, title, url);
+  callListeners();
+}
+
+function go() {
+  var n = arguments.length <= 0 || arguments[0] === undefined ? -1 : arguments[0];
+
+  historyManager.go(n);
+  callListeners();
+}
+
+function back() {
+  historyManager.back();
+  callListeners();
+}
+
+function forward() {
+  historyManager.forward();
+  callListeners();
+}
+
+function subscribe(listener) {
+  listeners.push(listener);
+
+  return function () {
+    listeners = listeners.filter(function (f) {
+      return f !== listener;
+    });
+  };
+}
+
+exports.default = {
+  go: go,
+  push: push,
+  back: back,
+  forward: forward,
+  processUrl: processUrl,
+  subscribe: subscribe,
+  match: match
+};
+
+},{}],16:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = router;
+function router() {
+  var state = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+  var action = arguments[1];
+
+  switch (action.type) {
+    case "CHANGE_ROUTE":
+      return action.route;
+    default:
+      return state;
+  }
+}
+
+},{}],17:[function(require,module,exports){
+'use strict';
+
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
@@ -1821,7 +2115,7 @@ var TodoForm = _shadowComponent2.default.ComponentFactory({
 
 exports.default = TodoForm;
 
-},{"shadow-component":3}],14:[function(require,module,exports){
+},{"shadow-component":3}],18:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1893,7 +2187,7 @@ var TodoList = _shadowComponent2.default.ComponentFactory({
 
 exports.default = TodoList;
 
-},{"../filter_visibility/store":12,"./show.view":15,"jsx-to-shaco":2,"shadow-component":3}],15:[function(require,module,exports){
+},{"../filter_visibility/store":12,"./show.view":19,"jsx-to-shaco":2,"shadow-component":3}],19:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1942,7 +2236,13 @@ var Todo = _shadowComponent2.default.ComponentFactory({
             clickHandler();
           }
         },
-        children: [' ', text, ' ']
+        children: [' ', (0, _jsxToShaco2.default)({
+          elementName: 'a',
+          attributes: {
+            href: '/task/' + this.state.id
+          },
+          children: [' ', text, ' ']
+        }), ' ']
       }), ' ', (0, _jsxToShaco2.default)({
         elementName: 'button',
         attributes: {
@@ -1959,7 +2259,7 @@ var Todo = _shadowComponent2.default.ComponentFactory({
 
 exports.default = Todo;
 
-},{"jsx-to-shaco":2,"shadow-component":3}],16:[function(require,module,exports){
+},{"jsx-to-shaco":2,"shadow-component":3}],20:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -2023,7 +2323,7 @@ function todos() {
 
 exports.default = todos;
 
-},{}],17:[function(require,module,exports){
+},{}],21:[function(require,module,exports){
 'use strict';
 
 var _shadowComponent = require('shadow-component');
@@ -2034,72 +2334,43 @@ var _store = require('./store');
 
 var _store2 = _interopRequireDefault(_store);
 
-var _store3 = require('./components/filter_visibility/store');
+var _component = require('./components/router/component');
 
-var _list = require('./components/todos/list.view');
+var _component2 = _interopRequireDefault(_component);
 
-var _list2 = _interopRequireDefault(_list);
+var _view = require('./components/main/view');
 
-var _form = require('./components/todos/form.view');
-
-var _form2 = _interopRequireDefault(_form);
-
-var _filter = require('./components/filter_visibility/filter.view');
-
-var _filter2 = _interopRequireDefault(_filter);
+var _view2 = _interopRequireDefault(_view);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var TodoApp = _shadowComponent2.default.ComponentFactory({
-  elementName: 'todo-app',
+var TodoContainer = _shadowComponent2.default.ComponentFactory({
+  elementName: 'todo-container',
   state: _store2.default.getState(),
   template: '\n  <style>\n    :host {\n  font-family: Helvetica;\n  max-width: 500px;\n  margin: 0 auto;\n  display: block;\n  }\n  </style>\n  <content></content>',
-  statePlusHandlers: function statePlusHandlers() {
-    return Object.assign({}, this.state, {
-      toggleHandler: function toggleHandler(index) {
-        _store2.default.dispatch({ type: "TOGGLE_TODO", index: index });
-      },
-      removeHandler: function removeHandler(index) {
-        _store2.default.dispatch({ type: "REMOVE_TODO", index: index });
-      }
-    });
-  },
-  submitHandlerFactory: function submitHandlerFactory() {
-    return {
-      submitHandler: function submitHandler(value) {
-        _store2.default.dispatch({ type: "ADD_TODO", text: value });
-      }
-    };
-  },
-  filterMenuState: function filterMenuState() {
-    return {
-      visibilityFilter: this.state.visibilityFilter,
-      filterHandler: function filterHandler(filter) {
-        _store2.default.dispatch({ type: "SET_VISIBILITY_FILTER", filter: filter });
-      },
-
-      filters: _store3.filters
-    };
-  },
-
   view: function view() {
-    _shadowComponent2.default.createElement('todo-form', null, this.submitHandlerFactory());
-    _shadowComponent2.default.createElement('todo-list', null, this.statePlusHandlers());
-    _shadowComponent2.default.createElement('filter-menu', null, this.filterMenuState());
+    _shadowComponent2.default.createElement('router-manager', null, this.state, {}, function () {
+      this.routerIs('/', ['todo-app', null]);
+      this.routerIs('*', ['div', null, {}, 'Not Found']);
+    });
   }
 });
 
 var render = function render() {
-  _shadowComponent2.default.renderDOM('todo-app', document.getElementById('TodoApp'), _store2.default.getState());
+  _shadowComponent2.default.renderDOM('todo-container', document.getElementById('TodoApp'), _store2.default.getState());
 };
 
 render();
 
 _store2.default.subscribe(render);
 
-console.log(_store2.default);
+function init() {
+  console.log('Start');
+}
 
-},{"./components/filter_visibility/filter.view":11,"./components/filter_visibility/store":12,"./components/todos/form.view":13,"./components/todos/list.view":14,"./store":19,"shadow-component":3}],18:[function(require,module,exports){
+window.addEventListener ? addEventListener("load", init, false) : window.attachEvent ? attachEvent("onload", init) : onload = init;
+
+},{"./components/main/view":13,"./components/router/component":14,"./store":23,"shadow-component":3}],22:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -2190,7 +2461,7 @@ exports.default = {
   createStore: createStore
 };
 
-},{}],19:[function(require,module,exports){
+},{}],23:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -2209,6 +2480,10 @@ var _store3 = require('./components/filter_visibility/store');
 
 var _store4 = _interopRequireDefault(_store3);
 
+var _store5 = require('./components/router/store');
+
+var _store6 = _interopRequireDefault(_store5);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var combineReducers = _state_manager2.default.combineReducers;
@@ -2217,11 +2492,12 @@ var createStore = _state_manager2.default.createStore;
 
 var reducer = combineReducers({
   todos: _store2.default,
-  visibilityFilter: _store4.default
+  visibilityFilter: _store4.default,
+  router: _store6.default
 });
 
 var store = createStore(reducer);
 
 exports.default = store;
 
-},{"./components/filter_visibility/store":12,"./components/todos/store":16,"./state_manager":18}]},{},[17]);
+},{"./components/filter_visibility/store":12,"./components/router/store":16,"./components/todos/store":20,"./state_manager":22}]},{},[21]);
