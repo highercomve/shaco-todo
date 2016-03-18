@@ -2429,7 +2429,7 @@ var TodoContainer = _shadowComponent2.default.ComponentFactory({
      *    "/" -> the index
      *    "/tasks"
      *    "/tasks/:id"
-     *    "*" -> the rest
+     *    ".*" -> the rest
      * The second parameter is and array that will be past to Shaco.createElement. You don't add the state here
      * The State will be passed to all the components inside the router-manager
      * You can use router-manager using JSX like before or using javascript functions, like this:
