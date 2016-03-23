@@ -79,9 +79,9 @@ const Todo = Shaco.ComponentFactory({
     return (
       <li class={(completed) ? 'ready':'not-ready'}>
         <span class="content" onclick={() => { clickHandler() }}>
-          <a onclick={() => { HistoryManager.push(`/task/${this.state.id}`) }}>
+          <route-link state={{to: `/task/${this.state.id}`}}>
             {text}
-          </a>
+          </route-link>
         </span>
         <button class="todo-remove" onclick={ () => { removeHandler() }}>
           {'\u2612'}

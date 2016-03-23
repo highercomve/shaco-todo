@@ -8,12 +8,48 @@ function combineReducers (reducers) {
   }
 }
 
+function chainCompose (functionsArray) {
+  return (...args) => {
+    const functionsToCompose = functionsArray.slice(0,-1)
+    const initialFunc = functionsArray.slice(-1)[0]
+    return functionsToCompose.reduceRight((result, func) => {
+      return func(result)
+    }, initialFunc(...args))
+  }
+}
+
+function interceptStoreWith (...interceptors) {
+  return (store) => {
+    let dispatch = store.dispatch
+
+    // Using the scope to past throw every interceptor function the scoped dispatch function
+    let interceptorStoreAPI = {
+      dispatch (action) { return dispatch(action) },
+      getState: store.getState
+    }
+    let interceptorsChain = interceptors.map(interceptor => {
+      return interceptor(interceptorStoreAPI)
+    })
+
+    // This change the dispatch function inside the actual scope. Therefore
+    // The inner function inside every interceptor will execute the complete interceptor stack
+    dispatch = chainCompose(interceptorsChain)(store.dispatch)
+
+    return {
+      ...store,
+      dispatch
+    }
+  }
+}
+
+
 function createStore (reducer) {
   let state
   let isBusy = false
   let listeners = []
 
   const dispatch = (action) => {
+    console.info('Calling dispatch inside store')
     mustNotBeTypeOf(action.type, 'undefined', 'Every action must have a type property')
     if (isBusy) {
       throw new Error('Reducer is busy')
@@ -70,8 +106,9 @@ function mustNotBeTypeOf (obj, mustBe, message) {
 
 }
 
-export default {
+export {
   combineReducers,
-  createStore
+  createStore,
+  interceptStoreWith
 }
 

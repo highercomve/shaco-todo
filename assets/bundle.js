@@ -150,6 +150,21 @@ function _toConsumableArray(arr) {
 
 var alreadyRender = false;
 
+var RouterLink = _shadowComponent2.default.ComponentFactory({
+  elementName: 'route-link',
+  template: '\n    <content></content>\n  ',
+  to: function to(e) {
+    e.preventDefault();
+    _history_manager2.default.push(this.state.to);
+  },
+  view: function view() {
+    _shadowComponent2.default.createElement('a', null, null, {
+      href: this.state.to,
+      onclick: this.to.bind(this)
+    }, this.state.child);
+  }
+});
+
 var RouterSelector = _shadowComponent2.default.ComponentFactory({
   elementName: 'route-selector',
   template: '\n    <content></content>\n  ',
@@ -205,17 +220,6 @@ var RouterManager = _shadowComponent2.default.ComponentFactory({
       Object.assign(this.defaultRoute, { pattern: pattern, paramsArray: paramsArray });
     }
   },
-  renderChild: function renderChild() {
-    var child = arguments.length <= 0 || arguments[0] === undefined ? this.state.child : arguments[0];
-
-    if (typeof child === 'function') {
-      return child();
-    } else if (Array.isArray(child)) {
-      child.forEach(this.renderChild);
-    } else {
-      return child;
-    }
-  },
   renderRouteComponent: function renderRouteComponent() {
     var selectedRoute = this.getComponentForRoute();
     if (selectedRoute.hasOwnProperty('pattern')) {
@@ -225,7 +229,7 @@ var RouterManager = _shadowComponent2.default.ComponentFactory({
   },
 
   view: function view() {
-    this.renderChild();
+    this.renderChildren();
     this.renderRouteComponent();
   }
 });
@@ -1755,6 +1759,22 @@ function setStateFactory() {
   };
 }
 
+function renderChildFactory() {
+  return {
+    renderChildren: function renderChildren() {
+      var child = arguments.length <= 0 || arguments[0] === undefined ? this.state.child : arguments[0];
+
+      if (typeof child === 'string') {
+        (0, _incrementalDom.text)(child);
+      } else if (typeof child === 'function') {
+        child();
+      } else if (Array.isArray(child)) {
+        child.forEach(this.renderChildren);
+      }
+    }
+  };
+}
+
 function TagFactory() {
   var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
 
@@ -1762,7 +1782,7 @@ function TagFactory() {
   validateRequiredFields(options);
   var CloneOptions = Object.assign({}, { name: options.elementName });
   delete Object.elementName;
-  Object.assign(options, renderFactory(options.view), setStateFactory());
+  Object.assign(options, renderFactory(options.view), setStateFactory(), renderChildFactory());
   return (0, _builder2.default)(CloneOptions.name, options);
 }
 
@@ -2281,8 +2301,6 @@ var Todo = _shadowComponent2.default.ComponentFactory({
   state: defaultTodoState,
   template: '\n  <style>\n    ::content li .content,\n      ::content li .todo-remove {\n  float: left;\n  display: block;\n  }\n\n    ::content li .content {\n  width: 92%;\n  }\n\n    ::content li .todo-remove {\n  background: none;\n  color: #e74c3c;\n  border: none;\n  box-shadow: none;\n  font-size: 2.2em;\n  margin-top: -0.5em;\n  line-height: 0.8em;\n  width: 8%;\n  float: right;\n  position: relative;\n  top: 0.2em;\n  }\n\n    ::content .ready {\n  color: #999;\n  position: relative;\n  }\n\n    ::content .ready:before {\n  position: absolute;\n  top: 48%;\n  left: %5;\n  width: 80%;\n  display: block;\n  border-bottom: 1px solid #999;\n  content: "";\n  }\n\n    ::content .not-ready {\n  text-decoration: none;\n  }\n\n    ::content li {\n  background-color: #F3F3F3;\n  padding: 1em;\n  border-bottom: 1px solid #CCC;\n  border-top: 1px solid #FFF;\n  position: relative;\n  }\n    ::content li:before,\n      ::content li:after {\n  content: "";\n  display: block;\n  clear: both;\n  }\n  </style>\n  <div class="todo-item">\n  <content></content>\n  </div>\n  ',
   view: function view() {
-    var _this = this;
-
     var _state = this.state;
     var text = _state.text;
     var clickHandler = _state.clickHandler;
@@ -2304,11 +2322,9 @@ var Todo = _shadowComponent2.default.ComponentFactory({
           }
         },
         children: [' ', (0, _jsxToShaco2.default)({
-          elementName: 'a',
+          elementName: 'route-link',
           attributes: {
-            onclick: function onclick() {
-              _shacoRouter.HistoryManager.push('/task/' + _this.state.id);
-            }
+            state: { to: '/task/' + this.state.id }
           },
           children: [' ', text, ' ']
         }), ' ']
@@ -2485,6 +2501,8 @@ Object.defineProperty(exports, "__esModule", {
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
 
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
 function combineReducers(reducers) {
   return function () {
     var state = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
@@ -2497,12 +2515,53 @@ function combineReducers(reducers) {
   };
 }
 
+function chainCompose(functionsArray) {
+  return function () {
+    var functionsToCompose = functionsArray.slice(0, -1);
+    var initialFunc = functionsArray.slice(-1)[0];
+    return functionsToCompose.reduceRight(function (result, func) {
+      return func(result);
+    }, initialFunc.apply(undefined, arguments));
+  };
+}
+
+function interceptStoreWith() {
+  for (var _len = arguments.length, interceptors = Array(_len), _key = 0; _key < _len; _key++) {
+    interceptors[_key] = arguments[_key];
+  }
+
+  return function (store) {
+    var _dispatch = store.dispatch;
+
+    // Using the scope to past throw every interceptor function the scoped dispatch function
+    var interceptorStoreAPI = {
+      dispatch: function dispatch(action) {
+        return _dispatch(action);
+      },
+
+      getState: store.getState
+    };
+    var interceptorsChain = interceptors.map(function (interceptor) {
+      return interceptor(interceptorStoreAPI);
+    });
+
+    // This change the dispatch function inside the actual scope. Therefore
+    // The inner function inside every interceptor will execute the complete interceptor stack
+    _dispatch = chainCompose(interceptorsChain)(store.dispatch);
+
+    return _extends({}, store, {
+      dispatch: _dispatch
+    });
+  };
+}
+
 function createStore(reducer) {
   var state = undefined;
   var isBusy = false;
   var listeners = [];
 
   var dispatch = function dispatch(action) {
+    console.info('Calling dispatch inside store');
     mustNotBeTypeOf(action.type, 'undefined', 'Every action must have a type property');
     if (isBusy) {
       throw new Error('Reducer is busy');
@@ -2562,10 +2621,9 @@ function mustNotBeTypeOf(obj, mustBe, message) {
   }
 }
 
-exports.default = {
-  combineReducers: combineReducers,
-  createStore: createStore
-};
+exports.combineReducers = combineReducers;
+exports.createStore = createStore;
+exports.interceptStoreWith = interceptStoreWith;
 
 },{}],24:[function(require,module,exports){
 'use strict';
@@ -2575,8 +2633,6 @@ Object.defineProperty(exports, "__esModule", {
 });
 
 var _state_manager = require('./state_manager');
-
-var _state_manager2 = _interopRequireDefault(_state_manager);
 
 var _store = require('./components/todos/store');
 
@@ -2588,16 +2644,42 @@ var _store4 = _interopRequireDefault(_store3);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var combineReducers = _state_manager2.default.combineReducers;
-var createStore = _state_manager2.default.createStore;
+// let { combineReducers, createStore, interceptStoreWith } = StateManager
 
-
-var reducer = combineReducers({
+var reducer = (0, _state_manager.combineReducers)({
   todos: _store2.default,
   visibilityFilter: _store4.default
 });
 
-var store = createStore(reducer);
+var logInterceptor = function logInterceptor(store) {
+  return function (dispatchDown) {
+    return function (action) {
+      console.info('dispatching action:');
+      console.log(action);
+      console.info('the state is:');
+      console.log(store.getState());
+      var nextAction = dispatchDown(action);
+      console.info('new state is:');
+      console.log(store.getState());
+
+      return nextAction;
+    };
+  };
+};
+
+var PromiseInterceptor = function PromiseInterceptor(store) {
+  return function (dispatchDown) {
+    return function (action) {
+      if (typeof action.then !== 'function') {
+        return dispatchDown(action);
+      }
+
+      // Implement the PromiseInterceptor, when the action is a Promise do something
+    };
+  };
+};
+
+var store = (0, _state_manager.interceptStoreWith)(logInterceptor, PromiseInterceptor)((0, _state_manager.createStore)(reducer));
 
 exports.default = store;
 
