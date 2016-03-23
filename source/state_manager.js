@@ -1,3 +1,8 @@
+if (!Array.isArray) {
+  Array.isArray = function(arg) {
+    return Object.prototype.toString.call(arg) === '[object Array]';
+  };
+}
 
 function combineReducers (reducers) {
   return (state = {}, action) => {
@@ -18,7 +23,10 @@ function chainCompose (functionsArray) {
   }
 }
 
-function interceptStoreWith (...interceptors) {
+function interceptStoreWith (interceptors) {
+  if (!Array.isArray(interceptors)) {
+    interceptors = arguments
+  }
   return (store) => {
     let dispatch = store.dispatch
 
@@ -49,7 +57,6 @@ function createStore (reducer) {
   let listeners = []
 
   const dispatch = (action) => {
-    console.info('Calling dispatch inside store')
     mustNotBeTypeOf(action.type, 'undefined', 'Every action must have a type property')
     if (isBusy) {
       throw new Error('Reducer is busy')

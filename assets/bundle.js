@@ -2503,6 +2503,12 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
+if (!Array.isArray) {
+  Array.isArray = function (arg) {
+    return Object.prototype.toString.call(arg) === '[object Array]';
+  };
+}
+
 function combineReducers(reducers) {
   return function () {
     var state = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
@@ -2525,11 +2531,10 @@ function chainCompose(functionsArray) {
   };
 }
 
-function interceptStoreWith() {
-  for (var _len = arguments.length, interceptors = Array(_len), _key = 0; _key < _len; _key++) {
-    interceptors[_key] = arguments[_key];
+function interceptStoreWith(interceptors) {
+  if (!Array.isArray(interceptors)) {
+    interceptors = arguments;
   }
-
   return function (store) {
     var _dispatch = store.dispatch;
 
@@ -2561,7 +2566,6 @@ function createStore(reducer) {
   var listeners = [];
 
   var dispatch = function dispatch(action) {
-    console.info('Calling dispatch inside store');
     mustNotBeTypeOf(action.type, 'undefined', 'Every action must have a type property');
     if (isBusy) {
       throw new Error('Reducer is busy');
@@ -2679,7 +2683,7 @@ var PromiseInterceptor = function PromiseInterceptor(store) {
   };
 };
 
-var store = (0, _state_manager.interceptStoreWith)(logInterceptor, PromiseInterceptor)((0, _state_manager.createStore)(reducer));
+var store = (0, _state_manager.interceptStoreWith)([logInterceptor, PromiseInterceptor])((0, _state_manager.createStore)(reducer));
 
 exports.default = store;
 

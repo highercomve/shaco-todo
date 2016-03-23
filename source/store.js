@@ -30,6 +30,9 @@ const PromiseInterceptor = (store) => (dispatchDown) => (action) => {
 
 }
 
-const store = interceptStoreWith(logInterceptor, PromiseInterceptor)(createStore(reducer))
+const store = interceptStoreWith([
+  logInterceptor,
+  PromiseInterceptor
+])(createStore(reducer))
 
 export default store
