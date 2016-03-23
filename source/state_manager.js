@@ -36,11 +36,17 @@ function interceptStoreWith (interceptors) {
       getState: store.getState
     }
     let interceptorsChain = interceptors.map(interceptor => {
+      // This pass the first store to all the interceptos
       return interceptor(interceptorStoreAPI)
     })
 
     // This change the dispatch function inside the actual scope. Therefore
     // The inner function inside every interceptor will execute the complete interceptor stack
+    //
+    // The chaincompose take every function returned for every interceptor when pass the store
+    // And create a chain like this: interceptor2(interceptor1(interceptor0(store.dispatch)))
+    // And assign this new function chain to dispatch. the chain will return a function that receive
+    // an action like dispatch inside store.
     dispatch = chainCompose(interceptorsChain)(store.dispatch)
 
     return {
