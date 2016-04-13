@@ -1,6 +1,6 @@
 import Shaco from 'shadow-component'
 import store from '../../store'
-import { filters } from '../filter_visibility/store'
+import { filters } from '../filter_visibility/reducer'
 import TodoList from '../todos/list.view'
 import TodoForm from '../todos/form.view'
 import FilterMenu from '../filter_visibility/filter.view'

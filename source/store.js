@@ -1,6 +1,6 @@
 import { combineReducers, createStore, interceptStoreWith }  from './state_manager'
-import todos from './components/todos/store'
-import visibilityFilter from './components/filter_visibility/store'
+import todos from './components/todos/reducer'
+import visibilityFilter from './components/filter_visibility/reducer'
 
 // let { combineReducers, createStore, interceptStoreWith } = StateManager
 

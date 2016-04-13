@@ -1,5 +1,5 @@
 import Shaco from 'shadow-component'
-import { filterTodos } from '../filter_visibility/store'
+import { filterTodos } from '../filter_visibility/reducer'
 import Todo from './show.view'
 
 const defaultTodosState = {
@@ -39,11 +39,12 @@ const TodoList = Shaco.ComponentFactory({
   <h2>My todo list</h2>
   <content></content>
   `,
-  todoPlushandlers(todo, index) {
-    return Object.assign({}, todo, {
-      clickHandler: (e) =>  { this.state.toggleHandler(index) },
-        removeHandler: () => { this.state.removeHandler(index) }
-    })
+  todoPlushandlers(todo) {
+    return {
+      ...todo,
+      toggleHandler: this.state.toggleHandler,
+      removeHandler: this.state.removeHandler
+    }
   },
   view: function () {
     const { todos, visibilityFilter } = this.state
@@ -52,7 +53,7 @@ const TodoList = Shaco.ComponentFactory({
       <ul>
         { visibleTodos.map((todo, index) => {
           return (
-            <todo-item key={index} state={ this.todoPlushandlers(todo, index)}></todo-item>
+            <todo-item key={index} state={ this.todoPlushandlers(todo) }></todo-item>
           )
         })}
       </ul>

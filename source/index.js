@@ -31,11 +31,12 @@ const TodoContainer = Shaco.ComponentFactory({
      * The State will be passed to all the components inside the router-manager
      * You can use router-manager using JSX like before or using javascript functions, like this:
      *
-     */
-    // Shaco.createElement('route-manager', null, this.state, {}, () => {
-    //   Shaco.createElement('route-selector', null, { pattern: '/', params: ['todo-app', null]} )
-    //   Shaco.createElement('route-selector', null, { pattern: '.*', params: ['div', null, {}, "Not found"]} )
-    // })
+     *
+      Shaco.createElement('route-manager', null, this.state, {}, () => {
+        Shaco.createElement('route-selector', null, { pattern: '/', params: ['todo-app', null]} )
+        Shaco.createElement('route-selector', null, { pattern: '.*', params: ['div', null, {}, "Not found"]} )
+      })
+      */
 
     return (
       <route-manager state={this.state}>

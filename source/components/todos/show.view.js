@@ -75,15 +75,16 @@ const Todo = Shaco.ComponentFactory({
   </div>
   `,
   view () {
-    let { text, clickHandler, removeHandler, completed, child} = this.state
+    let { id, text, toggleHandler, removeHandler, completed, child} = this.state
     return (
       <li class={(completed) ? 'ready':'not-ready'}>
-        <span class="content" onclick={() => { clickHandler() }}>
+        <span class="content" onclick={() => { toggleHandler(this.state.id) }}>
+          { text } 
           <route-link state={{to: `/task/${this.state.id}`}}>
-            {text}
+            (link)
           </route-link>
         </span>
-        <button class="todo-remove" onclick={ () => { removeHandler() }}>
+        <button class="todo-remove" onclick={ () => { removeHandler(this.state.id) }}>
           {'\u2612'}
         </button>
       </li>
