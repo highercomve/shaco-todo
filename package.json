@@ -35,7 +35,7 @@
   "dependencies": {
     "compression": "^1.6.1",
     "express": "^4.13.4",
-    "gzippo": "^0.2.0",
+    "express-static-gzip": "^0.3.0",
     "morgan": "^1.7.0",
     "nodemon": "^1.9.1"
   },
@@ -49,8 +49,8 @@
     "jsx-to-shaco": "0.0.4",
     "redux": "^3.3.1",
     "shaco-router": "0.0.2",
-    "shadow-component": "^0.2.3",
-    "uglifyjs": "^2.4.10",
+    "shadow-component": "^0.2.5",
+    "uglify-js": "^3.1.2",
     "watchify": "^3.7.0"
   }
 }

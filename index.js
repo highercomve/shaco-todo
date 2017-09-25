@@ -1,5 +1,5 @@
-var gzippo = require('gzippo');
 var express = require('express');
+var expressStaticGzip = require("express-static-gzip");
 var morgan = require('morgan');
 var app = express();
 var path = require('path')
@@ -13,10 +13,7 @@ var redirectoHome = function(req, res) {
 
 app.use(morgan('dev'))
 
-app.use('/assets', gzippo.staticGzip(__dirname + "/assets/" , {
-  maxAge: 0,
-  clientMaxAge: 0
-}))
+app.use('/assets', expressStaticGzip("./assets/"))
 
 app.get('/', sendIndex)
 
