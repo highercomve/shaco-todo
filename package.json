@@ -37,7 +37,8 @@
     "express": "^4.13.4",
     "express-static-gzip": "^0.3.0",
     "morgan": "^1.7.0",
-    "nodemon": "^1.9.1"
+    "nodemon": "^1.9.1",
+    "uuid": "^3.1.0"
   },
   "devDependencies": {
     "babel": "^6.5.0",
