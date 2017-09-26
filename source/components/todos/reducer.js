@@ -1,3 +1,5 @@
+import { v4 } from 'uuid';
+
 function defaultTodoObj () {
   return { completed: false }
 }
@@ -5,7 +7,7 @@ function defaultTodoObj () {
 function addTodo (state, action) {
   return [
     ...state,
-    newTodo({ id: state.length,  text: action.text })
+    newTodo({ id: v4(),  text: action.text })
   ]
 }
 
